@@ -67,3 +67,7 @@ notional <- read_delim(file.path(path_out_local, file_notional),
 notional <- do_entity_aggregata(.notional = notional,
                                 .mapping_entity = mapping_entity)
 
+#---------------------- 002 CALCOLO INTERPOLAZIONE SPLINE ---------------------#
+
+curve_1y_interpol <- do_interpolazione_spline(.curve_1y = curve_1y)
+
