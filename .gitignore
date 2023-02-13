@@ -3,3 +3,5 @@
 .RData
 .Ruserdata
 ecap11s6.Rproj
+man/
+data/
