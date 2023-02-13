@@ -1,6 +1,6 @@
 #' do_discount_factor
 #' @description
-#' Aggiunge
+#' Aggiunge DISCOUNT FACTOR.
 #' @param .curve_1y_interpol tibble with 5 variables:
 #' * COD_VALUTA chr,
 #' * ID_MESE_MAT dbl,
