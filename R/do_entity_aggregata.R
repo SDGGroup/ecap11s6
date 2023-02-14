@@ -33,7 +33,11 @@ do_entity_aggregata <- function(.notional_prep, .notional_noprep, .mapping_entit
     pull()
 
   notional_espanso <- expand_grid(.notional_noprep, elenco_shock) %>%
-    select(COD_VALUTA_FINALE, COD_ENTITY, ID_MESE_MAT, VAL_NOTIONAL, DES_SHOCK_FINALE = elenco_shock)
+    select(COD_VALUTA_FINALE,
+           COD_ENTITY,
+           ID_MESE_MAT,
+           VAL_NOTIONAL,
+           DES_SHOCK_FINALE = elenco_shock)
 
   notional <- bind_rows(.notional_prep, notional_espanso)
 
@@ -58,7 +62,12 @@ do_entity_aggregata <- function(.notional_prep, .notional_noprep, .mapping_entit
   notional_prep <- bind_rows(notional_prep, totale00001,totale00005)
 
   notional <- notional_prep %>%
-    bind_rows(notional_noprep)
+    bind_rows(notional_noprep) %>%
+    select(COD_VALUTA_FINALE,
+           COD_ENTITY,
+           ID_MESE_MAT,
+           DES_SHOCK_FINALE,
+           VAL_NOTIONAL)
 
   # return
   return(list(notional = notional, notional_prep = notional_prep))

@@ -41,7 +41,15 @@ do_ecap <- function(.deltapv, .mapping_entity, .quantiles){
            ECAP = ECAP_00001*peso,
            COD_RIPARTIZIONE = 2) %>%
     ungroup() %>%
-    select(ID_YEAR, COD_VALUTA, COD_ENTITY, ECAP, VAL_PERCENTILE, ID_SCEN, DES_SHOCK_FINALE, DES_PREPAYMENT, COD_RIPARTIZIONE)
+    select(ID_YEAR,
+           COD_VALUTA,
+           COD_ENTITY,
+           ECAP,
+           VAL_PERCENTILE,
+           ID_SCEN,
+           DES_SHOCK_FINALE,
+           DES_PREPAYMENT,
+           COD_RIPARTIZIONE)
 
   filiali_estere <- .mapping_entity %>%
     filter ( FLG_CAPOGRUPPO == 'N') %>%
@@ -57,7 +65,15 @@ do_ecap <- function(.deltapv, .mapping_entity, .quantiles){
            ECAP = ECAP_00001*peso,
            COD_RIPARTIZIONE = 1) %>%
     ungroup() %>%
-    select(ID_YEAR, COD_VALUTA, COD_ENTITY, ECAP, VAL_PERCENTILE, ID_SCEN, DES_SHOCK_FINALE, DES_PREPAYMENT, COD_RIPARTIZIONE)
+    select(ID_YEAR,
+           COD_VALUTA,
+           COD_ENTITY,
+           ECAP,
+           VAL_PERCENTILE,
+           ID_SCEN,
+           DES_SHOCK_FINALE,
+           DES_PREPAYMENT,
+           COD_RIPARTIZIONE)
 
   ECAP <- ECAP %>%
     bind_rows(ECAP_1, ECAP_2)
@@ -70,7 +86,16 @@ do_ecap <- function(.deltapv, .mapping_entity, .quantiles){
     ungroup()
 
   ECAP <- ECAP %>%
-    bind_rows(valuta_tot)
+    bind_rows(valuta_tot) %>%
+    select(ID_YEAR,
+           COD_VALUTA,
+           COD_ENTITY,
+           ECAP,
+           VAL_PERCENTILE,
+           ID_SCEN,
+           DES_SHOCK_FINALE,
+           DES_PREPAYMENT,
+           COD_RIPARTIZIONE)
 
   return(ECAP)
 }

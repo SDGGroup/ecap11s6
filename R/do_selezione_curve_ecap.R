@@ -31,7 +31,14 @@ do_selezione_curve_ecap <- function(.ecap, .curve_1y_interpol){
   .ecap %>%
     filter(COD_RIPARTIZIONE == 0 & !(COD_VALUTA =="TOT") )%>%
     left_join(.curve_1y_interpol, by = c( "ID_YEAR", "COD_VALUTA", "ID_SCEN")) %>%
-    select(ID_YEAR, COD_VALUTA, COD_ENTITY, VAL_PERCENTILE, ID_SCEN, DES_SHOCK_FINALE,
-           DES_PREPAYMENT, ID_MESE_MAT, VAL_TASSO)
+    select(ID_YEAR,
+           COD_VALUTA,
+           COD_ENTITY,
+           VAL_PERCENTILE,
+           ID_SCEN,
+           DES_SHOCK_FINALE,
+           DES_PREPAYMENT,
+           ID_MESE_MAT,
+           VAL_TASSO)
 
 }

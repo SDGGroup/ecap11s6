@@ -101,7 +101,14 @@ do_deltapv <- function(.scenari_prep, .scenari_noprep, .notional, .notional_prep
   }
 
   deltaPV <- deltaPV_prep %>%
-    bind_rows(deltaPV_noprep)
+    bind_rows(deltaPV_noprep) %>%
+    select(ID_YEAR,
+           COD_VALUTA,
+           ID_SCEN,
+           DES_SHOCK_FINALE,
+           COD_ENTITY,
+           DELTA_PV,
+           DES_PREPAYMENT)
 
   return(deltaPV)
 }

@@ -18,5 +18,11 @@
 
 do_discount_factor <- function(.curve_1y_interpol){
   .curve_1y_interpol %>%
-    mutate(DISCOUNT_FACTOR = exp(-VAL_TASSO*ID_MESE_MAT/12))
+    mutate(DISCOUNT_FACTOR = exp(-VAL_TASSO*ID_MESE_MAT/12)) %>%
+    select(COD_VALUTA,
+           ID_YEAR,
+           ID_SCEN,
+           ID_MESE_MAT,
+           VAL_TASSO,
+           DISCOUNT_FACTOR)
 }

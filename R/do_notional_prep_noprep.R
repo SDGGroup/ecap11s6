@@ -29,11 +29,19 @@ do_notional_prep_noprep <- function(.notional) {
 
   notional_noprep <- .notional %>%
     inner_join(entity_valuta_noprep, by = c("COD_VALUTA_FINALE","COD_ENTITY")) %>%
-    select(COD_VALUTA_FINALE, COD_ENTITY, ID_MESE_MAT, DES_SHOCK_FINALE, VAL_NOTIONAL)
+    select(COD_VALUTA_FINALE,
+           COD_ENTITY,
+           ID_MESE_MAT,
+           DES_SHOCK_FINALE,
+           VAL_NOTIONAL)
 
   notional_prep <- notional %>%
     inner_join(entity_valuta_prep, by = c("COD_VALUTA_FINALE","COD_ENTITY")) %>%
-    select(COD_VALUTA_FINALE, COD_ENTITY, ID_MESE_MAT, DES_SHOCK_FINALE, VAL_NOTIONAL)
+    select(COD_VALUTA_FINALE,
+           COD_ENTITY,
+           ID_MESE_MAT,
+           DES_SHOCK_FINALE,
+           VAL_NOTIONAL)
 
   return(list(notional_noprep = notional_noprep, notional_prep = notional_prep))
 }

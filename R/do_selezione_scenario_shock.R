@@ -30,7 +30,11 @@ do_selezione_scenario_shock <- function(.curve_1y_interpol, .shock_effettivi, .p
   scenari_noprep <- .curve_1y_interpol %>%
   filter(ID_SCEN != 0) %>%
   distinct(COD_VALUTA, ID_YEAR, ID_SCEN) %>%
-  mutate(DES_SHOCK_FINALE = .scenario_no_prepayment)
+  mutate(DES_SHOCK_FINALE = .scenario_no_prepayment) %>%
+  select(COD_VALUTA,
+         ID_YEAR,
+         ID_SCEN,
+         DES_SHOCK_FINALE)
 
   if(.prepayment == "SI"){
     curve_1y_interpol_tenor_0 <- .curve_1y_interpol %>%
@@ -66,7 +70,10 @@ do_selezione_scenario_shock <- function(.curve_1y_interpol, .shock_effettivi, .p
       filter(peso == max(peso)) %>%
       slice(1) %>% # TODO aggiungere un warning se questo accade (riga non univoca)
       ungroup() %>%
-      select(ID_YEAR, COD_VALUTA,ID_SCEN , DES_SHOCK_FINALE)
+      select(ID_YEAR,
+             COD_VALUTA,
+             ID_SCEN,
+             DES_SHOCK_FINALE)
   } else {
     scenari_prep = NULL
   }

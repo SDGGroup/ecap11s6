@@ -23,7 +23,11 @@ do_interpolazione_spline <- function(.curve_1y) {
     # use reframe()
     reframe(.interpolazione_spline(.x = ID_MESE_MAT, .y = VAL_TASSO, .max_x = max_x),
               .groups = "drop") %>%
-    select(COD_VALUTA, ID_YEAR, ID_SCEN,ID_MESE_MAT = x, VAL_TASSO = y)
+    select(COD_VALUTA,
+           ID_YEAR,
+           ID_SCEN,
+           ID_MESE_MAT = x,
+           VAL_TASSO = y)
 
   return(curve_1y_interpol)
 
