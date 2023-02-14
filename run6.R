@@ -6,6 +6,9 @@ rm(list=ls(all = TRUE))
 require(readxl)
 require(readr)
 require(ecap11s6)
+require(future)
+require(furrr)
+require(dplyr)
 
 
 ################################################################################
