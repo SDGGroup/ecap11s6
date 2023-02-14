@@ -16,6 +16,7 @@
 #' * VAL_SHOCK_NOMINALE_BPS dbl
 #' @param .prepayment chr.
 #' @param .scenario_no_prepayment chr.
+#' @param .mesi_tenor_prepayment int.
 #' @return a list with 2 tibble, each with 5 variables:
 #' * COD_VALUTA chr,
 #' * ID_MESE_MAT dbl,
@@ -24,27 +25,27 @@
 #' * VAL_TASSO dbl.
 #' @export
 
-do_selezione_scenario_shock <- function(.curve_1y_interpol, .shock_effettivi, .prepayment, .scenario_no_prepayment) {
+do_selezione_scenario_shock <- function(.curve_1y_interpol, .shock_effettivi, .prepayment, .scenario_no_prepayment, .mesi_tenor_prepayment) {
 
   scenari_noprep <- .curve_1y_interpol %>%
   filter(ID_SCEN != 0) %>%
   distinct(COD_VALUTA, ID_YEAR, ID_SCEN) %>%
-  mutate(DES_SHOCK_FINALE = scenario_no_prepayment)
+  mutate(DES_SHOCK_FINALE = .scenario_no_prepayment)
 
-  if(prepayment == "SI"){
+  if(.prepayment == "SI"){
     curve_1y_interpol_tenor_0 <- .curve_1y_interpol %>%
-      filter (ID_MESE_MAT == mesi_tenor_prepayement , ID_SCEN == 0) %>%
+      filter (ID_MESE_MAT == .mesi_tenor_prepayment , ID_SCEN == 0) %>%
       select(ID_YEAR, COD_VALUTA, ID_MESE_MAT,VAL_TASSO_0 = VAL_TASSO)
 
     curve_1y_interpol_tenor_1 <- .curve_1y_interpol %>%
-      filter (ID_MESE_MAT == mesi_tenor_prepayement , ID_SCEN != 0) %>%
+      filter (ID_MESE_MAT == .mesi_tenor_prepayment , ID_SCEN != 0) %>%
       select(ID_YEAR, COD_VALUTA , ID_SCEN, ID_MESE_MAT, VAL_TASSO_1 = VAL_TASSO)
 
     scenari_prep <- curve_1y_interpol_tenor_1  %>%
       left_join(curve_1y_interpol_tenor_0, by = c("ID_YEAR", "COD_VALUTA","ID_MESE_MAT"))
 
     scenari_prep <- scenari_prep %>%
-      mutate(SHOCK_SIMULATO = 1000*(VAL_TASSO_1 - VAL_TASSO_0)) %>%
+      mutate(SHOCK_SIMULATO = 10000*(VAL_TASSO_1 - VAL_TASSO_0)) %>%
       select(ID_YEAR, COD_VALUTA, ID_SCEN,ID_MESE_MAT, SHOCK_SIMULATO)
 
     scenari_prep <- scenari_prep %>%

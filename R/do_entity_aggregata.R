@@ -7,7 +7,7 @@
 #' * ID_MESE_MAT dbl,
 #' * DES_SHOCK_FINALE dbl,
 #' * VAL_NOTIONAL dbl.
-#' #' @param .notional_noprep tibble with 5 variables:
+#' @param .notional_noprep tibble with 5 variables:
 #' * COD_VALUTA_FINALE chr,
 #' * COD_ENTITY chr,
 #' * ID_MESE_MAT dbl,
@@ -18,7 +18,7 @@
 #' * DES_SHOCK_DISCOUNT_FACTOR chr,
 #' * DES_SHOCK_FINALE dbl,
 #' * VAL_SHOCK_NOMINALE_BPS dbl.
-#' @return tibble with 5 variables:
+#' @return a list with 2 tibbles, each with 5 variables:
 #' * COD_VALUTA_FINALE chr,
 #' * COD_ENTITY chr,
 #' * ID_MESE_MAT dbl,
@@ -57,7 +57,10 @@ do_entity_aggregata <- function(.notional_prep, .notional_noprep, .mapping_entit
   #accodiamo alla shift_aggregata
   notional_prep <- bind_rows(notional_prep, totale00001,totale00005)
 
+  notional <- notional_prep %>%
+    bind_rows(notional_noprep)
+
   # return
-  return(notional_prep)
+  return(list(notional = notional, notional_prep = notional_prep))
 
 }
