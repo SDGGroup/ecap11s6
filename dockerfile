@@ -36,7 +36,7 @@ ADD man man
 
 # install ecap11s6
 RUN R CMD build .
-RUN R -e "install.packages('"$(ls | grep ecap11s5)"', repos = NULL, type = 'source')"
+RUN R -e "install.packages('"$(ls | grep ecap11s6)"', repos = NULL, type = 'source')"
 
 # at docker starts
 CMD R -e "source('run6.R')"

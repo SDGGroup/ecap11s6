@@ -45,10 +45,13 @@ scenario_no_prepayment <- "100"
 mapping_entity <- read_excel(file.path(path_in_local, file_mapping_entity),
                              skip = 1,
                              col_names = c("COD_ENTITY", "DES_ENTITY", "COD_NU_TDB", "COD_BU_RND", "FLG_CAPOGRUPPO"))
-
+message('LOAD 001: mapping_entity')
 
 # caricamento term structure
 curve_1y <- read_excel(file.path(path_in_local, file_term_structure))
+message('LOAD 002: curve_1y')
+
+#--------------- 004 CARICAMENTO FILE OUTPUT SEZIONI PRECEDENTI ---------------#
 
 # notional base
 notional_base <- read_delim(file.path(path_out_local, file_notional_base),
@@ -57,8 +60,7 @@ notional_base <- read_delim(file.path(path_out_local, file_notional_base),
                             col_names = c("COD_VALUTA_FINALE", "COD_ENTITY", "ID_MESE_MAT", "DES_SHOCK_FINALE", "VAL_NOTIONAL"),
                             col_types = "ccdcd",
                             show_col_types = F)
-
-#--------------- 004 CARICAMENTO FILE OUTPUT SEZIONI PRECEDENTI ---------------#
+message('LOAD 003: notional_base')
 
 # caricamento notional
 notional <- read_delim(file.path(path_out_local, file_notional),
@@ -67,6 +69,8 @@ notional <- read_delim(file.path(path_out_local, file_notional),
                        col_names = c("COD_VALUTA_FINALE", "COD_ENTITY", "ID_MESE_MAT", "DES_SHOCK_FINALE", "VAL_NOTIONAL"),
                        col_types = "ccdcd",
                        show_col_types = F)
+message('LOAD 004: notional')
+
 
 # shock effettivi
 shock_effettivi <- read_delim(file.path(path_out_local, file_shock_effettivi),
@@ -75,6 +79,7 @@ shock_effettivi <- read_delim(file.path(path_out_local, file_shock_effettivi),
                               col_names = c("COD_VALUTA", "DES_SHOCK_FINALE", "ID_MESE_MAT", "VAL_SHOCK_EFFETTIVO_BPS", "VAL_SHOCK_NOMINALE_BPS"),
                               col_types = "ccddd",
                               show_col_types = F)
+message('LOAD 005: shock_effettivi')
 
 
 ################################################################################
@@ -83,6 +88,7 @@ shock_effettivi <- read_delim(file.path(path_out_local, file_shock_effettivi),
 
 #---------------------- 000 DIVISIONE NOTIONAL: PREP - NO PREP ----------------#
 .notional_diviso <- do_notional_prep_noprep(.notional = notional)
+message('CALC 000: divisione_notional')
 
 notional_prep <- .notional_diviso$notional_prep
 
@@ -94,6 +100,7 @@ notional_noprep <- .notional_diviso$notional_noprep
 .notional <- do_entity_aggregata(.notional_prep = notional_prep,
                                 .notional_noprep = notional_noprep,
                                 .mapping_entity = mapping_entity)
+message('CALC 001: entity_aggregata')
 
 notional <- .notional$notional
 
@@ -103,10 +110,12 @@ notional_prep <- .notional$notional_prep
 #---------------------- 002 CALCOLO INTERPOLAZIONE SPLINE ---------------------#
 
 curve_1y_interpol <- do_interpolazione_spline(.curve_1y = curve_1y)
+message('CALC 002: interpolazione_spline')
 
 #---------------------- 003 CALCOLO DISCOUNT FACTOR ---------------------------#
 
 curve_1y_interpol <- do_discount_factor(.curve_1y_interpol = curve_1y_interpol)
+message('CALC 003: discount_factor')
 
 # --------------------- 004 SELEZIONE SCENARIO SHOCK --------------------------#
 
@@ -115,6 +124,7 @@ curve_1y_interpol <- do_discount_factor(.curve_1y_interpol = curve_1y_interpol)
                                                          .prepayment = prepayment,
                                                          .scenario_no_prepayment = scenario_no_prepayment,
                                                          .mesi_tenor_prepayment = mesi_tenor_prepayment)
+message('CALC 004: selezione_scenario_shock')
 
 scenari_noprep <- .selezione_scenario_shock$scenari_noprep
 
@@ -129,18 +139,20 @@ deltapv <- do_deltapv(.scenari_prep = scenari_prep,
                       .notional_base = notional_base,
                       .curve_1y_interpol = curve_1y_interpol,
                       .formula_delta_pv = formula_delta_pv)
+message('CALC 005: delta_pv')
 
 # ------------------- 006 CALCOLO ECAP ----------------------------------------#
 
 ecap <- do_ecap(.deltapv = deltapv,
                 .mapping_entity = mapping_entity,
                 .quantiles = c(percentile1, percentile2))
+message('CALC 006: ecap')
 
-# ------------------- 007 SELEZIONE CURVA ECAP --------------------------------#
+# ------------------- 007 SELEZIONE CURVE ECAP --------------------------------#
 
 curve <- do_selezione_curve_ecap(.ecap = ecap,
                                  .curve_1y_interpol = curve_1y_interpol)
-
+message('CALC 007: selezione_curve_ecap')
 
 
 ################################################################################
