@@ -8,4 +8,4 @@ source ./script/env.sh
 docker build  -t $IMAGE  $DEV_PATH
 
 # Run Docker locally
-# docker run  -v /data/:/data/ ecap11s5
+# docker run  -v /data/:/data/ ecap11s6
