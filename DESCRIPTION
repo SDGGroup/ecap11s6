@@ -1,12 +1,24 @@
 Package: ecap11s6
-Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Title: Modello ecap11_irrbb_notional_equivalent step06 
+Version: 0.1
+Authors@R: c(
+    person("Andrea", "Spano", , "andrea.spano@sdggroup.com", role = c("aut")),
+    person("Emanuele", "Depaoli", , "emanuele.depaoli@sdggroup.com", role = c("cre")))
+Description: TBD
+License: MIT + file LICENSE
 Encoding: UTF-8
-LazyData: true
+Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
+Depends: 
+    R (>= 4.2.0)
+LazyData: true
+Imports:
+  dplyr,
+  tidyr,
+  readxl,
+  readr,
+  purrr,
+  tibble
+Suggests: 
+    testthat (>= 3.0.0),
+    roxygen2 (>= 7.2.3)

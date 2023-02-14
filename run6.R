@@ -85,6 +85,7 @@ shock_effettivi <- read_delim(file.path(path_out_local, file_shock_effettivi),
 .notional_diviso <- do_notional_prep_noprep(.notional = notional)
 
 notional_prep <- .notional_diviso$notional_prep
+
 notional_noprep <- .notional_diviso$notional_noprep
 
 
@@ -95,6 +96,7 @@ notional_noprep <- .notional_diviso$notional_noprep
                                 .mapping_entity = mapping_entity)
 
 notional <- .notional$notional
+
 notional_prep <- .notional$notional_prep
 
 
@@ -135,7 +137,7 @@ ecap <- do_ecap(.deltapv = deltapv,
                 .quantiles = c(percentile1, percentile2))
 
 # ------------------- 007 SELEZIONE CURVA ECAP --------------------------------#
-# TODO: warning da controllare
+
 curve <- do_selezione_curve_ecap(.ecap = ecap,
                                  .curve_1y_interpol = curve_1y_interpol)
 

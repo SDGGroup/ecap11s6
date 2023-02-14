@@ -121,3 +121,50 @@ do_deltapv_segnaletico <- function(.scenari, .notional, .notional_base, .curve_1
 
   return(deltaPV)
 }
+
+#' .do_ecap_arricchito
+#' @description
+#' Calcolo ECAP arricchito
+#' @param .deltaPV tibble object with 7 variables:
+#' * ID_YEAR dbl,
+#' * COD_VALUTA chr,
+#' * ID_SCEN dbl,
+#' * DES_SHOCK_FINALE chr,
+#' * COD_ENTITY chr,
+#' * DELTA_PV dbl,
+#' * DES_PREPAYMENT chr.
+#' @param .quantiles tba
+#' @return a tibble tba
+#' @export
+.do_ecap_arricchito <- function(.deltapv, .quantiles){
+
+  # Calcoliamo l'Ecap con i percentili
+  ECAP <- .deltapv %>%
+    group_by(ID_YEAR, COD_VALUTA, COD_ENTITY, DES_PREPAYMENT) %>%
+    reframe(num_scen = n(),
+              # quantile ordine 3: seleziona sempre un dato presente e non una sua
+              # statistica. (Nearest even order statistic with type 3)
+              ECAP = quantile(-DELTA_PV, .quantiles, type = 3),
+              VAL_PERCENTILE = .quantiles,
+              .groups = "drop") %>%
+    mutate(VAL_DELTA_PV = -ECAP)
+
+  # leghiamo anche lo scenario corrispondente all'ECAP e lo shock corrispondente
+  # all'ECAP
+  # (N:B ci poterbbero essere del DELTA_PV duplicati, gestiamo con slice)
+  ECAP_arricchito <- ECAP %>%
+    inner_join(.deltapv, by = c("ID_YEAR",
+                               "COD_VALUTA",
+                               "COD_ENTITY",
+                               "DES_PREPAYMENT",
+                               "VAL_DELTA_PV" = "DELTA_PV")
+    ) %>%
+    group_by(ID_YEAR, COD_VALUTA, COD_ENTITY, VAL_PERCENTILE, DES_PREPAYMENT) %>%
+    slice(1) %>%
+    ungroup() %>%
+    select(ID_YEAR, COD_VALUTA, COD_ENTITY, ECAP, VAL_PERCENTILE, ID_SCEN, DES_SHOCK_FINALE, DES_PREPAYMENT) %>%
+    mutate(COD_RIPARTIZIONE = 0)
+
+  return(ECAP_arricchito)
+
+}
