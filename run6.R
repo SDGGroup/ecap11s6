@@ -109,7 +109,7 @@ notional_prep <- .notional$notional_prep
 
 #---------------------- 002 CALCOLO INTERPOLAZIONE SPLINE ---------------------#
 
-curve_1y_interpol <- do_interpolazione_spline(.curve_1y = curve_1y)
+curve_1y_interpol <- do_interpolazione_spline(.curve_1y = curve_1y, .max_x = max_x)
 message('CALC 002: interpolazione_spline')
 
 #---------------------- 003 CALCOLO DISCOUNT FACTOR ---------------------------#
@@ -132,13 +132,14 @@ scenari_prep <- .selezione_scenario_shock$scenari_prep
 
 # -------------------- 005 CALCOLO DELTA PV -----------------------------------#
 
-deltapv <- do_deltapv(.scenari_prep = scenari_prep,
+deltapv <- do_deltapv(.formula_delta_pv = formula_delta_pv,
+                      .prepayment = prepayment,
+                      .scenari_prep = scenari_prep,
                       .scenari_noprep = scenari_noprep,
                       .notional_prep = notional_prep,
                       .notional_noprep = notional_noprep,
                       .notional_base = notional_base,
-                      .curve_1y_interpol = curve_1y_interpol,
-                      .formula_delta_pv = formula_delta_pv)
+                      .curve_1y_interpol = curve_1y_interpol)
 message('CALC 005: delta_pv')
 
 # ------------------- 006 CALCOLO ECAP ----------------------------------------#
