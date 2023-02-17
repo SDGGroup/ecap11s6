@@ -9,8 +9,11 @@ require(ecap11s6)
 require(future)
 require(furrr)
 require(dplyr)
+require(tictoc)
+require(tidyr)
 
-
+# drop zombie sessions
+plan(sequential)
 ################################################################################
 #---------------------------- FASE DI INPUT ------------------------------------
 ################################################################################
@@ -33,6 +36,7 @@ file_shock_effettivi <- "shock_effettivi_prova.csv"
 
 #----------------- 002 SETTINGS parameters  -----------------------------------#
 
+n_core <- 25
 mesi_tenor_prepayment <- 180
 prepayment <- 'SI' #SI/NO
 percentile1 <- 0.999
@@ -51,8 +55,55 @@ mapping_entity <- read_excel(file.path(path_in_local, file_mapping_entity),
 message('LOAD 001: mapping_entity')
 
 # caricamento term structure
-curve_1y <- read_excel(file.path(path_in_local, file_term_structure))
-message('LOAD 002: curve_1y')
+curve_1y <- read_excel(file.path(path_in_local, file_term_structure)) %>%
+  group_by(ID_YEAR, COD_VALUTA) %>%
+  mutate(ID_SCEN_CLASS = cut(ID_SCEN, 10)) %>%
+  ungroup()
+# message('LOAD 002: curve_1y')
+
+# caricamento dati grossi
+File_term_structure_EUR <- 'TermStr_Eur_2022_12_sstd_5Y_II_UPLOAD.csv'
+File_term_structure_GBP <- 'TermStr_GBP_2022_12_sstd_5Y.csv'
+File_term_structure_JPY <- 'TermStr_JPY_2022_12_sstd_5Y.csv'
+File_term_structure_USD <- 'TermStr_USD_2022_12_sstd_5Y.csv'
+
+ID_MESE_MAT <- curve_1y %>%
+  distinct(ID_MESE_MAT) %>%
+  pull()
+
+# curve 1y grandi
+curve_EUR <- read_delim(file.path(path_in_local, File_term_structure_EUR),
+                        col_names =  c("ID_SCEN", paste0("M_", ID_MESE_MAT)), skip = 1) %>%
+  pivot_longer(cols = paste0("M_", ID_MESE_MAT), names_to = "ID_MESE_MAT", names_prefix = "M_", values_to = "VAL_TASSO") %>%
+  mutate(COD_VALUTA = "EUR",
+         ID_MESE_MAT = as.numeric(ID_MESE_MAT),
+         ID_YEAR = 1)
+curve_USD <- read_delim(file.path(path_in_local, File_term_structure_USD),
+                        col_names =  c("ID_SCEN", paste0("M_", ID_MESE_MAT)), skip = 1) %>%
+  pivot_longer(cols = paste0("M_", ID_MESE_MAT), names_to = "ID_MESE_MAT", names_prefix = "M_", values_to = "VAL_TASSO") %>%
+  mutate(COD_VALUTA = "USD",
+         ID_MESE_MAT = as.numeric(ID_MESE_MAT),
+         ID_YEAR = 1)
+curve_JPY <- read_delim(file.path(path_in_local, File_term_structure_JPY),
+                        col_names =  c("ID_SCEN", paste0("M_", ID_MESE_MAT)), skip = 1) %>%
+  pivot_longer(cols = paste0("M_", ID_MESE_MAT), names_to = "ID_MESE_MAT", names_prefix = "M_", values_to = "VAL_TASSO") %>%
+  mutate(COD_VALUTA = "JPY",
+         ID_MESE_MAT = as.numeric(ID_MESE_MAT),
+         ID_YEAR = 1)
+curve_GBP <- read_delim(file.path(path_in_local, File_term_structure_GBP),
+                        col_names =  c("ID_SCEN", paste0("M_", ID_MESE_MAT)), skip = 1) %>%
+  pivot_longer(cols = paste0("M_", ID_MESE_MAT), names_to = "ID_MESE_MAT", names_prefix = "M_", values_to = "VAL_TASSO") %>%
+  mutate(COD_VALUTA = "GBP",
+         ID_MESE_MAT = as.numeric(ID_MESE_MAT),
+         ID_YEAR = 1)
+
+curve_1y_big <- bind_rows(curve_EUR, curve_GBP, curve_JPY, curve_USD)
+
+curve_1y <- curve_1y_big  %>%
+  group_by(ID_YEAR, COD_VALUTA) %>%
+  mutate(ID_SCEN_CLASS = cut(ID_SCEN, 100)) %>%
+  ungroup()
+
 
 #--------------- 004 CARICAMENTO FILE OUTPUT SEZIONI PRECEDENTI ---------------#
 
@@ -111,9 +162,11 @@ notional_prep <- .notional$notional_prep
 
 
 #---------------------- 002 CALCOLO INTERPOLAZIONE SPLINE ---------------------#
-
-curve_1y_interpol <- do_interpolazione_spline(.curve_1y = curve_1y)
+tic()
+curve_1y_interpol <- do_interpolazione_spline(.curve_1y = curve_1y, .max_x = max_x, .n_core = n_core)
+toc()
 message('CALC 002: interpolazione_spline')
+
 
 #---------------------- 003 CALCOLO DISCOUNT FACTOR ---------------------------#
 
@@ -126,7 +179,8 @@ message('CALC 003: discount_factor')
                                                          .shock_effettivi = shock_effettivi,
                                                          .prepayment = prepayment,
                                                          .scenario_no_prepayment = scenario_no_prepayment,
-                                                         .mesi_tenor_prepayment = mesi_tenor_prepayment)
+                                                         .mesi_tenor_prepayment = mesi_tenor_prepayment,
+                                                         .n_core = n_core)
 message('CALC 004: selezione_scenario_shock')
 
 scenari_noprep <- .selezione_scenario_shock$scenari_noprep
@@ -134,14 +188,17 @@ scenari_noprep <- .selezione_scenario_shock$scenari_noprep
 scenari_prep <- .selezione_scenario_shock$scenari_prep
 
 # -------------------- 005 CALCOLO DELTA PV -----------------------------------#
-
+tic()
 deltapv <- do_deltapv(.scenari_prep = scenari_prep,
                       .scenari_noprep = scenari_noprep,
+                      .notional = notional,
                       .notional_prep = notional_prep,
                       .notional_noprep = notional_noprep,
                       .notional_base = notional_base,
                       .curve_1y_interpol = curve_1y_interpol,
-                      .formula_delta_pv = formula_delta_pv)
+                      .formula_delta_pv = formula_delta_pv,
+                      .n_core = n_core)
+toc()
 message('CALC 005: delta_pv')
 
 # ------------------- 006 CALCOLO ECAP ----------------------------------------#

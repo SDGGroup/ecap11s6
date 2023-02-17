@@ -24,5 +24,6 @@ do_discount_factor <- function(.curve_1y_interpol){
            ID_SCEN,
            ID_MESE_MAT,
            VAL_TASSO,
-           DISCOUNT_FACTOR)
+           DISCOUNT_FACTOR,
+           ID_SCEN_CLASS)
 }

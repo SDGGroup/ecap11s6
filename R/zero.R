@@ -9,6 +9,8 @@
 #' @importFrom dplyr %>% filter select distinct group_by ungroup summarise slice if_else reframe mutate inner_join left_join semi_join bind_rows rows_update n n_distinct pull
 #' @importFrom tidyr expand_grid
 #' @importFrom tibble tibble
+#' @importFrom future plan
+#' @importFrom furrr future_map_dfr
 #' @examples
 #' zero()
 #' @export
