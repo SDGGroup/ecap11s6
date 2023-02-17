@@ -31,7 +31,7 @@
 
 do_ecap <- function(.deltapv, .mapping_entity, .quantiles){
 
-  ECAP <- .do_ecap_arricchito(.deltapv, .quantiles)
+  ECAP <- .do_ecap_base(.deltapv, .quantiles)
 
   ECAP_2 <- ECAP %>%
     group_by(ID_YEAR, COD_VALUTA, VAL_PERCENTILE, DES_PREPAYMENT) %>%
@@ -101,7 +101,7 @@ do_ecap <- function(.deltapv, .mapping_entity, .quantiles){
 }
 
 
-#' .do_ecap_arricchito
+#' .do_ecap_base
 #' @description
 #' Calcolo ECAP arricchito
 #' @param .deltaPV tibble object with 7 variables:
@@ -115,7 +115,7 @@ do_ecap <- function(.deltapv, .mapping_entity, .quantiles){
 #' @param .quantiles tba
 #' @return a tibble tba
 #' @export
-.do_ecap_arricchito <- function(.deltapv, .quantiles){
+.do_ecap_base <- function(.deltapv, .quantiles){
 
   # Calcoliamo l'Ecap con i percentili
   ECAP <- .deltapv %>%

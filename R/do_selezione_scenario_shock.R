@@ -25,10 +25,14 @@
 #' * VAL_TASSO dbl.
 #' @export
 
-do_selezione_scenario_shock <- function(.curve_1y_interpol, .shock_effettivi, .prepayment, .scenario_no_prepayment, .mesi_tenor_prepayment) {
+do_selezione_scenario_shock <- function(.curve_1y_interpol,
+                                        .shock_effettivi,
+                                        .prepayment,
+                                        .scenario_no_prepayment,
+                                        .mesi_tenor_prepayment) {
 
   scenari_noprep <- .curve_1y_interpol %>%
-  filter(ID_SCEN != 0) %>%
+  filter(ID_SCEN > 0) %>%
   distinct(COD_VALUTA, ID_YEAR, ID_SCEN) %>%
   mutate(DES_SHOCK_FINALE = .scenario_no_prepayment) %>%
   select(COD_VALUTA,
@@ -42,18 +46,19 @@ do_selezione_scenario_shock <- function(.curve_1y_interpol, .shock_effettivi, .p
       select(ID_YEAR, COD_VALUTA, ID_MESE_MAT,VAL_TASSO_0 = VAL_TASSO)
 
     curve_1y_interpol_tenor_1 <- .curve_1y_interpol %>%
-      filter (ID_MESE_MAT == .mesi_tenor_prepayment , ID_SCEN != 0) %>%
+      filter (ID_MESE_MAT == .mesi_tenor_prepayment , ID_SCEN > 0) %>%
       select(ID_YEAR, COD_VALUTA , ID_SCEN, ID_MESE_MAT, VAL_TASSO_1 = VAL_TASSO)
 
     scenari_prep <- curve_1y_interpol_tenor_1  %>%
-      left_join(curve_1y_interpol_tenor_0, by = c("ID_YEAR", "COD_VALUTA","ID_MESE_MAT"))
+      left_join(curve_1y_interpol_tenor_0, by = c("ID_YEAR", "COD_VALUTA","ID_MESE_MAT"),
+                multiple = "all")
 
     scenari_prep <- scenari_prep %>%
       mutate(SHOCK_SIMULATO = 10000*(VAL_TASSO_1 - VAL_TASSO_0)) %>%
       select(ID_YEAR, COD_VALUTA, ID_SCEN,ID_MESE_MAT, SHOCK_SIMULATO)
 
     scenari_prep <- scenari_prep %>%
-      left_join(shock_effettivi, by = c('COD_VALUTA', 'ID_MESE_MAT'))
+      left_join(.shock_effettivi, by = c('COD_VALUTA', 'ID_MESE_MAT'), multiple = "all")
 
     scenari_prep <- scenari_prep %>%
       mutate(CONCORDANZA_SEGNO = .concorda_segno(SHOCK_SIMULATO, VAL_SHOCK_NOMINALE_BPS)) %>%

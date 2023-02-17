@@ -1,6 +1,8 @@
 #' do_deltapv.R
 #' @description
 #' Calcola DELTA PV.
+#' @param .formula_delta_pv chr.
+#' @param .prepayment chr.
 #' @param .scenari_prep tibble object with 4 variables:
 #' * COD_VALUTA chr,
 #' * ID_YEAR dbl,
@@ -36,7 +38,6 @@
 #' *  ID_MESE_MAT int,
 #' *  VAL_TASSO dbl,
 #' *  DISCOUNT_FACTOR dbl.
-#' @param .formula_delta_pv chr.
 #' @return a tibble object with 7 variables:
 #' * ID_YEAR dbl,
 #' * COD_VALUTA chr,
@@ -47,10 +48,18 @@
 #' * DES_PREPAYMENT chr.
 #' @export
 
-do_deltapv <- function(.scenari_prep, .scenari_noprep, .notional, .notional_prep, .notional_noprep, .notional_base, .curve_1y_interpol, .formula_delta_pv){
+do_deltapv <- function(.formula_delta_pv,
+                       .prepayment,
+                       .scenari_prep,
+                       .scenari_noprep,
+                       .notional,
+                       .notional_prep,
+                       .notional_noprep,
+                       .notional_base,
+                       .curve_1y_interpol){
 
   if(.formula_delta_pv == "GESTIONALE"){
-    if(prepayment == "NO"){
+    if(.prepayment == "NO"){
 
       deltaPV_noprep <- .do_deltapv_gestionale(.scenari_noprep, .notional, .curve_1y_interpol) %>%
         mutate(DES_PREPAYMENT = "N")
@@ -75,7 +84,7 @@ do_deltapv <- function(.scenari_prep, .scenari_noprep, .notional, .notional_prep
     }
   } else {
 
-    if(prepayment == "NO"){
+    if(.prepayment == "NO"){
 
       deltaPV_noprep <- .do_deltapv_segnaletico(.scenari_noprep, .notional, .notional_base, .curve_1y_interpol) %>%
         mutate(DES_PREPAYMENT = "N")
