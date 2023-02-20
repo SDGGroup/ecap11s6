@@ -54,6 +54,8 @@ message('LOAD 002: curve_1y')
 #--------------- 004 CARICAMENTO FILE OUTPUT SEZIONI PRECEDENTI ---------------#
 
 # notional base
+# TODO: notional_base VAL_NOTIONAL_BASE per COD_ENTITY "00001"
+# e COD_ENTITY "00005
 notional_base <- read_delim(file.path(path_out_local, file_notional_base),
                             skip = 1,
                             delim = ";",

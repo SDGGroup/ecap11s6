@@ -136,8 +136,8 @@ do_ecap <- function(.deltapv, .mapping_entity, .quantiles){
                                 "COD_VALUTA",
                                 "COD_ENTITY",
                                 "DES_PREPAYMENT",
-                                "VAL_DELTA_PV" = "DELTA_PV")
-    ) %>%
+                                "VAL_DELTA_PV" = "DELTA_PV"),
+               multiple = "all") %>%
     group_by(ID_YEAR, COD_VALUTA, COD_ENTITY, VAL_PERCENTILE, DES_PREPAYMENT) %>%
     slice(1) %>%
     ungroup() %>%

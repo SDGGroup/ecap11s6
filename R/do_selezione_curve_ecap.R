@@ -30,7 +30,8 @@ do_selezione_curve_ecap <- function(.ecap, .curve_1y_interpol){
 
   ecap <- .ecap %>%
     filter(COD_RIPARTIZIONE == 0 & !(COD_VALUTA =="TOT") )%>%
-    left_join(.curve_1y_interpol, by = c( "ID_YEAR", "COD_VALUTA", "ID_SCEN")) %>%
+    left_join(.curve_1y_interpol, by = c( "ID_YEAR", "COD_VALUTA", "ID_SCEN"),
+              multiple = "all") %>%
     select(ID_YEAR,
            COD_VALUTA,
            COD_ENTITY,
@@ -43,7 +44,7 @@ do_selezione_curve_ecap <- function(.ecap, .curve_1y_interpol){
 
   # aggiungo curva today (ID_SCEN == 0) e la curva forward (ID_SCEN == -1)
   curve2add <- .curve_1y_interpol %>%
-    filter(ID_SCEN == 0 | ID_SCEN == -1) %>%
+    filter(ID_SCEN == 0 | ID_SCEN == -1)
 
   ecap %>%
     bind_rows(curve2add) %>%
