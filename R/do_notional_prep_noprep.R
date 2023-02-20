@@ -35,7 +35,7 @@ do_notional_prep_noprep <- function(.notional) {
            DES_SHOCK_FINALE,
            VAL_NOTIONAL)
 
-  notional_prep <- notional %>%
+  notional_prep <- .notional %>%
     inner_join(entity_valuta_prep, by = c("COD_VALUTA_FINALE","COD_ENTITY")) %>%
     select(COD_VALUTA_FINALE,
            COD_ENTITY,

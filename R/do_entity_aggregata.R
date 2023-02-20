@@ -18,7 +18,7 @@
 #' * DES_SHOCK_DISCOUNT_FACTOR chr,
 #' * DES_SHOCK_FINALE dbl,
 #' * VAL_SHOCK_NOMINALE_BPS dbl.
-#' @return a list with 2 tibbles, each with 5 variables:
+#' @return a list with 3 tibbles, each with 5 variables:
 #' * COD_VALUTA_FINALE chr,
 #' * COD_ENTITY chr,
 #' * ID_MESE_MAT dbl,
@@ -41,7 +41,7 @@ do_entity_aggregata <- function(.notional_prep, .notional_noprep, .mapping_entit
 
   notional <- bind_rows(.notional_prep, notional_espanso)
 
-  entity_capogruppo <- mapping_entity %>%
+  entity_capogruppo <- .mapping_entity %>%
     filter(FLG_CAPOGRUPPO == 'Y') %>%
     select(COD_ENTITY) %>%
     distinct()
@@ -59,17 +59,20 @@ do_entity_aggregata <- function(.notional_prep, .notional_noprep, .mapping_entit
     mutate(COD_ENTITY = "00005")
 
   #accodiamo alla shift_aggregata
-  notional_prep <- bind_rows(notional_prep, totale00001,totale00005)
+  notional_prep <- bind_rows(.notional_prep, totale00001,totale00005)
 
   notional <- notional_prep %>%
-    bind_rows(notional_noprep) %>%
+    bind_rows(.notional_noprep) %>%
     select(COD_VALUTA_FINALE,
            COD_ENTITY,
            ID_MESE_MAT,
            DES_SHOCK_FINALE,
            VAL_NOTIONAL)
 
+  notional_totali <- totale00001 %>%
+    bind_rows(totale00005)
+
   # return
-  return(list(notional = notional, notional_prep = notional_prep))
+  return(list(notional = notional, notional_prep = notional_prep, notional_totali = notional_totali))
 
 }

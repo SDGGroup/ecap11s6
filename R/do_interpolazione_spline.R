@@ -8,7 +8,7 @@
 #' * ID_YEAR dbl,
 #' * ID_SCEN dbl,
 #' * VAL_TASSO dbl.
-#' @param .max_x
+#' @param .max_x int.
 #' @return tibble with 5 variables:
 #' * COD_VALUTA chr,
 #' * ID_MESE_MAT dbl,
@@ -18,7 +18,7 @@
 #' @export
 do_interpolazione_spline <- function(.curve_1y, .max_x) {
 
-  curve_1y_interpol <- curve_1y %>%
+  curve_1y_interpol <- .curve_1y %>%
     group_by(ID_YEAR, COD_VALUTA, ID_SCEN) %>%
     # Returning more (or less) than 1 row per `summarise()` group was deprecated in dplyr 1.1.0.
     # use reframe()
