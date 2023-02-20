@@ -33,6 +33,6 @@ test_that("do_ecap", {
                   .quantiles = c(.percentile1, .percentile2))
 
   expect_equal(nrow(out), 3428)
-  expect_equal(sum(out$ECAP), 116566526907, tolerance = 1e-4)
+  expect_equal(sum(out$VAL_ECAP), 116566526907, tolerance = 1e-4)
 
 })

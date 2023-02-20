@@ -27,7 +27,7 @@ test_that("do_deltapv_gestionale", {
                     .curve_1y_interpol = .curve_1y_interpol)
 
   expect_equal(nrow(out), 492000)
-  expect_equal(sum(out$DELTA_PV), -1.8739e+12, tolerance = 1e-4)
+  expect_equal(sum(out$VAL_DELTA_PV), -1.8739e+12, tolerance = 1e-4)
 
 })
 
@@ -62,6 +62,6 @@ test_that("do_deltapv_segnaletico", {
                     .curve_1y_interpol = .curve_1y_interpol)
 
   expect_equal(nrow(out), 492000)
-  expect_equal(sum(out$DELTA_PV, na.rm = T), 1.922435e+12, tolerance = 1e-4)
+  expect_equal(sum(out$VAL_DELTA_PV, na.rm = T), 1.922435e+12, tolerance = 1e-4)
 
 })

@@ -90,7 +90,7 @@ do_ecap <- function(.deltapv, .mapping_entity, .quantiles){
     select(ID_YEAR,
            COD_VALUTA,
            COD_ENTITY,
-           ECAP,
+           VAL_ECAP = ECAP,
            VAL_PERCENTILE,
            ID_SCEN,
            DES_SHOCK_FINALE,
@@ -123,7 +123,7 @@ do_ecap <- function(.deltapv, .mapping_entity, .quantiles){
     reframe(num_scen = n(),
             # quantile ordine 3: seleziona sempre un dato presente e non una sua
             # statistica. (Nearest even order statistic with type 3)
-            ECAP = quantile(-DELTA_PV, .quantiles, type = 3),
+            ECAP = quantile(-VAL_DELTA_PV, .quantiles, type = 3),
             VAL_PERCENTILE = .quantiles,
             .groups = "drop") %>%
     mutate(VAL_DELTA_PV = -ECAP)
@@ -136,7 +136,7 @@ do_ecap <- function(.deltapv, .mapping_entity, .quantiles){
                                 "COD_VALUTA",
                                 "COD_ENTITY",
                                 "DES_PREPAYMENT",
-                                "VAL_DELTA_PV" = "DELTA_PV"),
+                                "VAL_DELTA_PV"),
                multiple = "all") %>%
     group_by(ID_YEAR, COD_VALUTA, COD_ENTITY, VAL_PERCENTILE, DES_PREPAYMENT) %>%
     slice(1) %>%

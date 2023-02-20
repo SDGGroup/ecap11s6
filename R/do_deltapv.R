@@ -116,7 +116,7 @@ do_deltapv <- function(.formula_delta_pv,
            ID_SCEN,
            DES_SHOCK_FINALE,
            COD_ENTITY,
-           DELTA_PV,
+           VAL_DELTA_PV = DELTA_PV,
            DES_PREPAYMENT)
 
   return(deltaPV)
