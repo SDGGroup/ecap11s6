@@ -38,6 +38,7 @@
 #' *  ID_MESE_MAT int,
 #' *  VAL_TASSO dbl,
 #' *  DISCOUNT_FACTOR dbl.
+#' @param .n_core core number for multisession
 #' @return a tibble object with 7 variables:
 #' * ID_YEAR dbl,
 #' * COD_VALUTA chr,
@@ -56,7 +57,8 @@ do_deltapv <- function(.formula_delta_pv,
                        .notional_prep,
                        .notional_noprep,
                        .notional_base,
-                       .curve_1y_interpol){
+                       .curve_1y_interpol,
+                       .n_core){
 
   if(.formula_delta_pv == "GESTIONALE"){
     if(.prepayment == "NO"){
@@ -69,14 +71,52 @@ do_deltapv <- function(.formula_delta_pv,
     } else {
 
       #calcoliamo il caso senza prepayment (in due pezzi distinti, perchè uno ci servirà anche per il caso con prepayment)
-      deltaPV_NN <- .do_deltapv_gestionale(.scenari_noprep, .notional_noprep, .curve_1y_interpol)
-      deltaPV_NS <- .do_deltapv_gestionale(.scenari_noprep, .notional_prep, .curve_1y_interpol)
+      # deltaPV_NN <- .do_deltapv_gestionale(.scenari = .scenari_noprep, 
+      #                                      .notional = .notional_noprep, 
+      #                                      .curve_1y_interpol = .curve_1y_interpol)
+      cl <- makeCluster(.n_core)
+      deltaPV_NN <-  parLapply(cl, 
+                               list_split <- .curve_1y_interpol %>% group_split(ID_SCEN_CLASS),
+                               .do_deltapv_gestionale,
+                               .scenari = .scenari_noprep, 
+                               .notional = .notional_noprep)
+      deltaPV_NN <- bind_rows(deltaPV_NN)
+      stopCluster(cl) # kill cluster
+      closeAllConnections()
+      gc()
+      cat('deltaPV_NN','\n')
+      
+      # deltaPV_NS <- .do_deltapv_gestionale(.scenari_noprep, .notional_prep, .curve_1y_interpol)
+      cl <- makeCluster(.n_core)
+      deltaPV_NS <-  parLapply(cl, 
+                               list_split <- .curve_1y_interpol %>% group_split(ID_SCEN_CLASS),
+                               .do_deltapv_gestionale,
+                               .scenari = .scenari_noprep, 
+                               .notional = .notional_prep) %>% 
+        bind_rows()
+      stopCluster(cl) # kill cluster
+      closeAllConnections()
+      gc()
+      cat('deltaPV_NS','\n')
+      
       deltaPV_noprep <- deltaPV_NN %>%
         bind_rows(deltaPV_NS) %>%
         mutate(DES_PREPAYMENT = "N")
 
       #calcoliamo il caso con prepayment (e)
-      deltaPV_SS <- .do_deltapv_gestionale(.scenari_prep, .notional_prep, .curve_1y_interpol)
+      # deltaPV_SS <- .do_deltapv_gestionale(.scenari_prep, .notional_prep, .curve_1y_interpol)
+      cl <- makeCluster(.n_core)
+      deltaPV_SS <-  parLapply(cl, 
+                               list_split <- .curve_1y_interpol %>% group_split(ID_SCEN_CLASS),
+                               .do_deltapv_gestionale,
+                               .scenari = .scenari_prep, 
+                               .notional = .notional_prep) %>% 
+        bind_rows()
+      stopCluster(cl) # kill cluster
+      closeAllConnections()
+      gc()
+      cat('deltaPV_SS','\n')
+      
       deltaPV_prep <- bind_rows(deltaPV_SS,
                                 deltaPV_NN) %>%
         mutate(DES_PREPAYMENT = "Y")
@@ -118,7 +158,9 @@ do_deltapv <- function(.formula_delta_pv,
            COD_ENTITY,
            VAL_DELTA_PV = DELTA_PV,
            DES_PREPAYMENT)
-
+  
+  
+  
   return(deltaPV)
 }
 
@@ -126,34 +168,26 @@ do_deltapv <- function(.formula_delta_pv,
 #' @description
 #' Calcola DELTA_PV gestionale per ogni scenario contenuto in scenari, valuta ed
 #' entity contenuta in notional.
+#' @param .curve tba
 #' @param .scenari tba
 #' @param .notional tba
-#' @param .curve_1y_interpol tba
 #' @return a tibble tba
 #' @export
-.do_deltapv_gestionale <- function(.scenari, .notional, .curve_1y_interpol){
-
-  scenari_notional <- .scenari %>%
-    inner_join(.notional,
-               by = c('COD_VALUTA' = 'COD_VALUTA_FINALE', 'DES_SHOCK_FINALE' = 'DES_SHOCK_FINALE'),
-               multiple = "all") %>%
-    select(ID_YEAR, COD_VALUTA, ID_SCEN, DES_SHOCK_FINALE, COD_ENTITY, ID_MESE_MAT, VAL_NOTIONAL)
-  # num = years*scenari*480*cod_entity
-
-  scenari_notional_curve <- scenari_notional %>%
-    left_join(.curve_1y_interpol, by = c("ID_YEAR", 'COD_VALUTA', 'ID_MESE_MAT', 'ID_SCEN'),
-              multiple = "all") %>%
+.do_deltapv_gestionale <- function(.curve,.scenari, .notional){
+  .curr_scen_class <- .curve %>% distinct(ID_SCEN_CLASS) %>% pull
+  scenari_notional_curve <- .scenari %>%
+    filter(ID_SCEN_CLASS %in% .curr_scen_class) %>%
+    inner_join(.notional,by = c('COD_VALUTA' = 'COD_VALUTA_FINALE', 'DES_SHOCK_FINALE' = 'DES_SHOCK_FINALE'), multiple = "all") %>%
+    select(ID_YEAR, COD_VALUTA, ID_SCEN, DES_SHOCK_FINALE, COD_ENTITY, ID_MESE_MAT, VAL_NOTIONAL) %>% 
+    left_join(.curve, by = c("ID_YEAR", 'COD_VALUTA', 'ID_MESE_MAT', 'ID_SCEN'), multiple = "all") %>%
     select(ID_YEAR, COD_VALUTA, ID_SCEN, DES_SHOCK_FINALE, COD_ENTITY, ID_MESE_MAT, VAL_NOTIONAL, DISCOUNT_FACTOR)
-
-  discount_factor_0 <- .curve_1y_interpol %>%
+ 
+  discount_factor_0 <- .curve %>%
     filter (ID_SCEN == 0) %>%
     select(ID_YEAR, COD_VALUTA,ID_MESE_MAT,DISCOUNT_FACTOR_0 = DISCOUNT_FACTOR)
 
-  scenari_notional_curve_df0 <- scenari_notional_curve %>%
-    left_join(discount_factor_0, by = c("ID_YEAR", 'COD_VALUTA','ID_MESE_MAT'),
-              multiple = "all")
-
-  deltaPV <- scenari_notional_curve_df0 %>%
+  deltaPV <- scenari_notional_curve %>%
+    left_join(discount_factor_0, by = c("ID_YEAR", 'COD_VALUTA','ID_MESE_MAT'), multiple = "all") %>% 
     mutate(PV_SIM = VAL_NOTIONAL * DISCOUNT_FACTOR,
            PV_0 = VAL_NOTIONAL * DISCOUNT_FACTOR_0) %>%
     group_by(ID_YEAR, COD_VALUTA , ID_SCEN , DES_SHOCK_FINALE,  COD_ENTITY ) %>%

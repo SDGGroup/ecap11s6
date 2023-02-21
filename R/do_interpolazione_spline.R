@@ -19,15 +19,29 @@
 #' @export
 do_interpolazione_spline <- function(.curve_1y, .max_x, .n_core) {
 
-  list_split <- .curve_1y %>%
-    group_by(ID_SCEN_CLASS) %>%
-    group_split()
-
   cl <- makeCluster(.n_core)
-  clusterEvalQ(cl, {library(dplyr)})
-  clusterExport(cl, c(".interpolazione_spline",'.max_x'),envir = environment())
-  curve_1y_interpol <- parLapply(cl, list_split, function(.x) {
-    .x %>%
+  curve_1y_interpol <- parLapply(cl, 
+                                 .curve_1y %>% group_split(ID_SCEN_CLASS), 
+                                 .do_interpolazione_spline,
+                                 .max_x = .max_x) %>% bind_rows()
+  stopCluster(cl) # kill cluster
+  closeAllConnections()
+  gc()
+
+  return(curve_1y_interpol)
+
+}
+
+
+#' .do_interpolazione_spline
+#' @description
+#' Esegue interpolazione spline su VAL_TASSO, per ogni combinazione di ID_SCEN_CLASS
+#' @param .curve tba
+#' @param .max_x int.
+#' @return a tibble tba
+#' @export
+.do_interpolazione_spline <- function(.curve, .max_x) {
+  interpolazione <- .curve %>%
       group_by(ID_YEAR, COD_VALUTA, ID_SCEN_CLASS, ID_SCEN) %>%
       reframe(.interpolazione_spline(.x = ID_MESE_MAT, .y = VAL_TASSO, .max_x = .max_x), .groups='drop') %>%
       select(COD_VALUTA,
@@ -36,12 +50,8 @@ do_interpolazione_spline <- function(.curve_1y, .max_x, .n_core) {
              ID_MESE_MAT = x,
              VAL_TASSO = y,
              ID_SCEN_CLASS)
-  })
-  stopCluster(cl) # kill cluster
-  closeAllConnections()
-  gc()
-  curve_1y_interpol <- map_dfr(curve_1y_interpol, bind_rows)
-
-  return(curve_1y_interpol)
-
+  
+  return(interpolazione)
+  
 }
+

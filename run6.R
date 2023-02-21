@@ -8,6 +8,8 @@ require(readr)
 require(ecap11s6)
 require(dplyr) # to import curve_1y_big
 require(tidyr) # to import curve_1y_big
+require(parallel)
+require(tictoc)
 
 
 ################################################################################
@@ -41,7 +43,7 @@ storicizza_delta_pv <- 'SI' #SI/NO
 max_x <- 480
 scenario_no_prepayment <- "100"
 
-n_core = 30
+n_core = 25
 
 #---------------- 003 CARICAMENTO FILE ----------------------------------------#
 
@@ -52,7 +54,9 @@ mapping_entity <- read_excel(file.path(path_in_local, file_mapping_entity),
 message('LOAD 001: mapping_entity')
 
 # caricamento term structure
-curve_1y <- read_excel(file.path(path_in_local, file_term_structure))
+curve_1y <- read_excel(file.path(path_in_local, file_term_structure)) %>% 
+  mutate(key_split = paste(ID_YEAR, COD_VALUTA, ID_SCEN, sep='_')) %>% 
+  mutate(ID_SCEN_CLASS = ntile(key_split, 1000))
 message('LOAD 002: curve_1y')
 
 # caricamento dati grossi
@@ -92,11 +96,12 @@ curve_GBP <- read_delim(file.path(path_in_local, File_term_structure_GBP),
          ID_YEAR = 1)
 
 curve_1y_big <- bind_rows(curve_EUR, curve_GBP, curve_JPY, curve_USD)
+rm(curve_EUR,curve_USD, curve_JPY, curve_GBP)
 
 curve_1y <- curve_1y_big  %>%
-  group_by(ID_YEAR, COD_VALUTA) %>%
-  mutate(ID_SCEN_CLASS = cut(ID_SCEN, 100)) %>%
-  ungroup()
+mutate(key_split = paste(ID_YEAR, COD_VALUTA, ID_SCEN, sep='_')) %>%
+  mutate(ID_SCEN_CLASS = ntile(key_split, 5000))
+rm(curve_1y_big)
 
 
 #--------------- 004 CARICAMENTO FILE OUTPUT SEZIONI PRECEDENTI ---------------#
@@ -144,6 +149,8 @@ notional_prep <- .notional_diviso$notional_prep
 
 notional_noprep <- .notional_diviso$notional_noprep
 
+rm(.notional_diviso)
+
 
 #---------------------- 001 CALCOLO ENTITY AGGREGATA --------------------------#
 
@@ -155,20 +162,24 @@ message('CALC 001: entity_aggregata')
 notional <- .notional$notional
 
 notional_prep <- .notional$notional_prep
-
+rm(.notional)
 
 #---------------------- 002 CALCOLO INTERPOLAZIONE SPLINE ---------------------#
-
+tic()
 curve_1y_interpol <- do_interpolazione_spline(.curve_1y = curve_1y, .max_x = max_x, .n_core = n_core)
 message('CALC 002: interpolazione_spline')
+toc()
+
+rm(curve_1y)
+gc()
 
 #---------------------- 003 CALCOLO DISCOUNT FACTOR ---------------------------#
-
 curve_1y_interpol <- do_discount_factor(.curve_1y_interpol = curve_1y_interpol)
 message('CALC 003: discount_factor')
+gc()
 
 # --------------------- 004 SELEZIONE SCENARIO SHOCK --------------------------#
-
+tic()
 .selezione_scenario_shock <- do_selezione_scenario_shock(.curve_1y_interpol = curve_1y_interpol,
                                                          .shock_effettivi = shock_effettivi,
                                                          .prepayment = prepayment,
@@ -176,13 +187,15 @@ message('CALC 003: discount_factor')
                                                          .mesi_tenor_prepayment = mesi_tenor_prepayment,
                                                          .n_core = n_core)
 message('CALC 004: selezione_scenario_shock')
-
+toc()
 scenari_noprep <- .selezione_scenario_shock$scenari_noprep
 
 scenari_prep <- .selezione_scenario_shock$scenari_prep
+rm(.selezione_scenario_shock)
+gc()
 
 # -------------------- 005 CALCOLO DELTA PV -----------------------------------#
-
+tic()
 deltapv <- do_deltapv(.formula_delta_pv = formula_delta_pv,
                       .prepayment = prepayment,
                       .scenari_prep = scenari_prep,
@@ -191,8 +204,11 @@ deltapv <- do_deltapv(.formula_delta_pv = formula_delta_pv,
                       .notional_prep = notional_prep,
                       .notional_noprep = notional_noprep,
                       .notional_base = notional_base,
-                      .curve_1y_interpol = curve_1y_interpol)
+                      .curve_1y_interpol = curve_1y_interpol,
+                      .n_core = n_core)
 message('CALC 005: delta_pv')
+toc()
+gc()
 
 # ------------------- 006 CALCOLO ECAP ----------------------------------------#
 

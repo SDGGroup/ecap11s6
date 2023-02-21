@@ -25,7 +25,6 @@
 #' * ID_SCEN dbl,
 #' * VAL_TASSO dbl.
 #' @export
-
 do_selezione_scenario_shock <- function(.curve_1y_interpol,
                                         .shock_effettivi,
                                         .prepayment,
@@ -81,33 +80,13 @@ do_selezione_scenario_shock <- function(.curve_1y_interpol,
       mutate(DELTA_SHOCK_EFFETTIVO = abs(VAL_SHOCK_EFFETTIVO_BPS-SHOCK_SIMULATO)) %>%
       mutate(DELTA_SHOCK_NOMINALE = abs(VAL_SHOCK_NOMINALE_BPS-SHOCK_SIMULATO))
 
-    list_split <- scenari_prep %>%
-      group_by(ID_SCEN_CLASS) %>%
-      group_split()
-
     cl <- makeCluster(.n_core)
-    clusterEvalQ(cl, {library(dplyr)})
-    scenari_prep <- parLapply(cl, list_split, function(.x) {
-      .x %>%
-        group_by(ID_YEAR, COD_VALUTA, ID_SCEN) %>%
-        mutate(min_DELTA_SHOCK_EFFETTIVO = min(DELTA_SHOCK_EFFETTIVO),
-               min_DELTA_SHOCK_NOMINALE = min(DELTA_SHOCK_NOMINALE),
-               peso = if_else(CONCORDANZA_SEGNO == 1, 10, 0) +
-                 if_else(DELTA_SHOCK_EFFETTIVO == min_DELTA_SHOCK_EFFETTIVO, 5, 0) +
-                 if_else(DELTA_SHOCK_NOMINALE == min_DELTA_SHOCK_NOMINALE, 1, 0)) %>%
-        filter(peso == max(peso)) %>%
-        slice(1) %>% # TODO aggiungere un warning se questo accade (riga non univoca)
-        ungroup() %>%
-        select(ID_YEAR,
-               COD_VALUTA,
-               ID_SCEN,
-               DES_SHOCK_FINALE,
-               ID_SCEN_CLASS)
-    })
+    scenari_prep <- parLapply(cl, 
+                              scenari_prep %>% group_split(ID_SCEN_CLASS),
+                              .do_selezione_scenario_shock) %>% bind_rows()
     stopCluster(cl) # kill cluster
     closeAllConnections()
     gc()
-    scenari_prep <- map_dfr(scenari_prep, bind_rows)
 
   } else {
     scenari_prep = NULL
@@ -115,4 +94,29 @@ do_selezione_scenario_shock <- function(.curve_1y_interpol,
 
   return(list(scenari_prep = scenari_prep, scenari_noprep = scenari_noprep))
 
+}
+
+#' .do_selezione_scenario_shock
+#' @description
+#' calcola su ogni ID_SCEN_CLASS le variabili di sintesi
+#' @param .curve tba
+#' @return tba
+#' @export
+.do_selezione_scenario_shock <- function(.curve) {
+  shock <- .curve %>%
+    group_by(ID_YEAR, COD_VALUTA, ID_SCEN) %>%
+    mutate(min_DELTA_SHOCK_EFFETTIVO = min(DELTA_SHOCK_EFFETTIVO),
+           min_DELTA_SHOCK_NOMINALE = min(DELTA_SHOCK_NOMINALE),
+           peso = if_else(CONCORDANZA_SEGNO == 1, 10, 0) +
+             if_else(DELTA_SHOCK_EFFETTIVO == min_DELTA_SHOCK_EFFETTIVO, 5, 0) +
+             if_else(DELTA_SHOCK_NOMINALE == min_DELTA_SHOCK_NOMINALE, 1, 0)) %>%
+    filter(peso == max(peso)) %>%
+    slice(1) %>% # TODO aggiungere un warning se questo accade (riga non univoca)
+    ungroup() %>%
+    select(ID_YEAR,
+           COD_VALUTA,
+           ID_SCEN,
+           DES_SHOCK_FINALE,
+           ID_SCEN_CLASS)
+  return(shock)
 }
