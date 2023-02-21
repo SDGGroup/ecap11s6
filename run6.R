@@ -51,6 +51,46 @@ message('LOAD 001: mapping_entity')
 curve_1y <- read_excel(file.path(path_in_local, file_term_structure))
 message('LOAD 002: curve_1y')
 
+# caricamento dati grossi
+File_term_structure_EUR <- 'TermStr_Eur_2022_12_sstd_5Y_II_UPLOAD.csv'
+File_term_structure_GBP <- 'TermStr_GBP_2022_12_sstd_5Y.csv'
+File_term_structure_JPY <- 'TermStr_JPY_2022_12_sstd_5Y.csv'
+File_term_structure_USD <- 'TermStr_USD_2022_12_sstd_5Y.csv'
+
+# ID_MESE_MAT <- curve_1y %>%
+#   distinct(ID_MESE_MAT) %>%
+#   pull()
+#
+# # curve 1y grandi
+# curve_EUR <- read_delim(file.path(path_in_local, File_term_structure_EUR),
+#                         col_names =  c("ID_SCEN", paste0("M_", ID_MESE_MAT)), skip = 1) %>%
+#   pivot_longer(cols = paste0("M_", ID_MESE_MAT), names_to = "ID_MESE_MAT", names_prefix = "M_", values_to = "VAL_TASSO") %>%
+#   mutate(COD_VALUTA = "EUR",
+#          ID_MESE_MAT = as.numeric(ID_MESE_MAT),
+#          ID_YEAR = 1)
+# curve_USD <- read_delim(file.path(path_in_local, File_term_structure_USD),
+#                         col_names =  c("ID_SCEN", paste0("M_", ID_MESE_MAT)), skip = 1) %>%
+#   pivot_longer(cols = paste0("M_", ID_MESE_MAT), names_to = "ID_MESE_MAT", names_prefix = "M_", values_to = "VAL_TASSO") %>%
+#   mutate(COD_VALUTA = "USD",
+#          ID_MESE_MAT = as.numeric(ID_MESE_MAT),
+#          ID_YEAR = 1)
+# curve_JPY <- read_delim(file.path(path_in_local, File_term_structure_JPY),
+#                         col_names =  c("ID_SCEN", paste0("M_", ID_MESE_MAT)), skip = 1) %>%
+#   pivot_longer(cols = paste0("M_", ID_MESE_MAT), names_to = "ID_MESE_MAT", names_prefix = "M_", values_to = "VAL_TASSO") %>%
+#   mutate(COD_VALUTA = "JPY",
+#          ID_MESE_MAT = as.numeric(ID_MESE_MAT),
+#          ID_YEAR = 1)
+# curve_GBP <- read_delim(file.path(path_in_local, File_term_structure_GBP),
+#                         col_names =  c("ID_SCEN", paste0("M_", ID_MESE_MAT)), skip = 1) %>%
+#   pivot_longer(cols = paste0("M_", ID_MESE_MAT), names_to = "ID_MESE_MAT", names_prefix = "M_", values_to = "VAL_TASSO") %>%
+#   mutate(COD_VALUTA = "GBP",
+#          ID_MESE_MAT = as.numeric(ID_MESE_MAT),
+#          ID_YEAR = 1)
+#
+# curve_1y_big <- bind_rows(curve_EUR, curve_GBP, curve_JPY, curve_USD)
+
+#curve_1y <- curve_1y_big
+
 #--------------- 004 CARICAMENTO FILE OUTPUT SEZIONI PRECEDENTI ---------------#
 
 # notional base
@@ -87,76 +127,38 @@ message('LOAD 005: shock_effettivi')
 ################################################################################
 #---------------------------- FASE DI CALCOLO-----------------------------------
 ################################################################################
+list_split <- curve_1y %>%
+  group_by(ID_YEAR, COD_VALUTA) %>%
+  mutate(ID_SCEN_CLASS = cut(ID_SCEN, 10)) %>%
+  group_by(ID_YEAR, COD_VALUTA, ID_SCEN_CLASS) %>%
+  group_split()
+#
+# out <- do_bl(.notional = notional,
+#                  .notional_base = notional_base,
+#                  .mapping_entity = mapping_entity,
+#                  .curve_1y = list_split[[1]],
+#                  .max_x = max_x,
+#                  .shock_effettivi = shock_effettivi,
+#                  .prepayment = prepayment,
+#                  .scenario_no_prepayment = scenario_no_prepayment,
+#                  .mesi_tenor_prepayment = mesi_tenor_prepayment,
+#                  .formula_delta_pv = formula_delta_pv,
+#                  .percentile1 = percentile1,
+#                  .percentile2 = percentile2)
 
-#---------------------- 000 DIVISIONE NOTIONAL: PREP - NO PREP ----------------#
-.notional_diviso <- do_notional_prep_noprep(.notional = notional)
-message('CALC 000: divisione_notional')
-
-notional_prep <- .notional_diviso$notional_prep
-
-notional_noprep <- .notional_diviso$notional_noprep
-
-
-#---------------------- 001 CALCOLO ENTITY AGGREGATA --------------------------#
-
-.notional <- do_entity_aggregata(.notional_prep = notional_prep,
-                                .notional_noprep = notional_noprep,
-                                .mapping_entity = mapping_entity)
-message('CALC 001: entity_aggregata')
-
-notional <- .notional$notional
-
-notional_prep <- .notional$notional_prep
-
-
-#---------------------- 002 CALCOLO INTERPOLAZIONE SPLINE ---------------------#
-
-curve_1y_interpol <- do_interpolazione_spline(.curve_1y = curve_1y, .max_x = max_x)
-message('CALC 002: interpolazione_spline')
-
-#---------------------- 003 CALCOLO DISCOUNT FACTOR ---------------------------#
-
-curve_1y_interpol <- do_discount_factor(.curve_1y_interpol = curve_1y_interpol)
-message('CALC 003: discount_factor')
-
-# --------------------- 004 SELEZIONE SCENARIO SHOCK --------------------------#
-
-.selezione_scenario_shock <- do_selezione_scenario_shock(.curve_1y_interpol = curve_1y_interpol,
-                                                         .shock_effettivi = shock_effettivi,
-                                                         .prepayment = prepayment,
-                                                         .scenario_no_prepayment = scenario_no_prepayment,
-                                                         .mesi_tenor_prepayment = mesi_tenor_prepayment)
-message('CALC 004: selezione_scenario_shock')
-
-scenari_noprep <- .selezione_scenario_shock$scenari_noprep
-
-scenari_prep <- .selezione_scenario_shock$scenari_prep
-
-# -------------------- 005 CALCOLO DELTA PV -----------------------------------#
-
-deltapv <- do_deltapv(.formula_delta_pv = formula_delta_pv,
-                      .prepayment = prepayment,
-                      .scenari_prep = scenari_prep,
-                      .scenari_noprep = scenari_noprep,
-                      .notional = notional,
-                      .notional_prep = notional_prep,
-                      .notional_noprep = notional_noprep,
-                      .notional_base = notional_base,
-                      .curve_1y_interpol = curve_1y_interpol)
-message('CALC 005: delta_pv')
-
-# ------------------- 006 CALCOLO ECAP ----------------------------------------#
-
-ecap <- do_ecap(.deltapv = deltapv,
-                .mapping_entity = mapping_entity,
-                .quantiles = c(percentile1, percentile2))
-message('CALC 006: ecap')
-
-# ------------------- 007 SELEZIONE CURVE ECAP --------------------------------#
-
-curve <- do_selezione_curve_ecap(.ecap = ecap,
-                                 .curve_1y_interpol = curve_1y_interpol)
-message('CALC 007: selezione_curve_ecap')
+out <- do_bl_par(.notional = notional,
+             .notional_base = notional_base,
+              .mapping_entity = mapping_entity,
+              .curve_1y = curve_1y,
+              .max_x = max_x,
+              .shock_effettivi = shock_effettivi,
+              .prepayment = prepayment,
+              .scenario_no_prepayment = scenario_no_prepayment,
+              .mesi_tenor_prepayment = mesi_tenor_prepayment,
+              .formula_delta_pv = formula_delta_pv,
+              .percentile1 = percentile1,
+              .percentile2 = percentile2,
+             .n_core = 30)
 
 
 ################################################################################
