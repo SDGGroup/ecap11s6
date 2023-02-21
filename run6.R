@@ -41,6 +41,8 @@ storicizza_delta_pv <- 'SI' #SI/NO
 max_x <- 480
 scenario_no_prepayment <- "100"
 
+n_core = 30
+
 #---------------- 003 CARICAMENTO FILE ----------------------------------------#
 
 # caricamento entity
@@ -157,7 +159,7 @@ notional_prep <- .notional$notional_prep
 
 #---------------------- 002 CALCOLO INTERPOLAZIONE SPLINE ---------------------#
 
-curve_1y_interpol <- do_interpolazione_spline(.curve_1y = curve_1y, .max_x = max_x, .n_core)
+curve_1y_interpol <- do_interpolazione_spline(.curve_1y = curve_1y, .max_x = max_x, .n_core = n_core)
 message('CALC 002: interpolazione_spline')
 
 #---------------------- 003 CALCOLO DISCOUNT FACTOR ---------------------------#
@@ -171,7 +173,8 @@ message('CALC 003: discount_factor')
                                                          .shock_effettivi = shock_effettivi,
                                                          .prepayment = prepayment,
                                                          .scenario_no_prepayment = scenario_no_prepayment,
-                                                         .mesi_tenor_prepayment = mesi_tenor_prepayment)
+                                                         .mesi_tenor_prepayment = mesi_tenor_prepayment,
+                                                         .n_core = n_core)
 message('CALC 004: selezione_scenario_shock')
 
 scenari_noprep <- .selezione_scenario_shock$scenari_noprep

@@ -22,6 +22,7 @@ do_discount_factor <- function(.curve_1y_interpol){
     select(COD_VALUTA,
            ID_YEAR,
            ID_SCEN,
+           ID_SCEN_CLASS,
            ID_MESE_MAT,
            VAL_TASSO,
            DISCOUNT_FACTOR)
