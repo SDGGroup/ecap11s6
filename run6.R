@@ -6,6 +6,8 @@ rm(list=ls(all = TRUE))
 require(readxl)
 require(readr)
 require(ecap11s6)
+require(dplyr) # to import curve_1y_big
+require(tidyr) # to import curve_1y_big
 
 
 ################################################################################
@@ -50,6 +52,50 @@ message('LOAD 001: mapping_entity')
 # caricamento term structure
 curve_1y <- read_excel(file.path(path_in_local, file_term_structure))
 message('LOAD 002: curve_1y')
+
+# caricamento dati grossi
+File_term_structure_EUR <- 'TermStr_Eur_2022_12_sstd_5Y_II_UPLOAD.csv'
+File_term_structure_GBP <- 'TermStr_GBP_2022_12_sstd_5Y.csv'
+File_term_structure_JPY <- 'TermStr_JPY_2022_12_sstd_5Y.csv'
+File_term_structure_USD <- 'TermStr_USD_2022_12_sstd_5Y.csv'
+
+ID_MESE_MAT <- curve_1y %>%
+  distinct(ID_MESE_MAT) %>%
+  pull()
+
+# curve 1y grandi
+curve_EUR <- read_delim(file.path(path_in_local, File_term_structure_EUR),
+                        col_names =  c("ID_SCEN", paste0("M_", ID_MESE_MAT)), skip = 1) %>%
+  pivot_longer(cols = paste0("M_", ID_MESE_MAT), names_to = "ID_MESE_MAT", names_prefix = "M_", values_to = "VAL_TASSO") %>%
+  mutate(COD_VALUTA = "EUR",
+         ID_MESE_MAT = as.numeric(ID_MESE_MAT),
+         ID_YEAR = 1)
+curve_USD <- read_delim(file.path(path_in_local, File_term_structure_USD),
+                        col_names =  c("ID_SCEN", paste0("M_", ID_MESE_MAT)), skip = 1) %>%
+  pivot_longer(cols = paste0("M_", ID_MESE_MAT), names_to = "ID_MESE_MAT", names_prefix = "M_", values_to = "VAL_TASSO") %>%
+  mutate(COD_VALUTA = "USD",
+         ID_MESE_MAT = as.numeric(ID_MESE_MAT),
+         ID_YEAR = 1)
+curve_JPY <- read_delim(file.path(path_in_local, File_term_structure_JPY),
+                        col_names =  c("ID_SCEN", paste0("M_", ID_MESE_MAT)), skip = 1) %>%
+  pivot_longer(cols = paste0("M_", ID_MESE_MAT), names_to = "ID_MESE_MAT", names_prefix = "M_", values_to = "VAL_TASSO") %>%
+  mutate(COD_VALUTA = "JPY",
+         ID_MESE_MAT = as.numeric(ID_MESE_MAT),
+         ID_YEAR = 1)
+curve_GBP <- read_delim(file.path(path_in_local, File_term_structure_GBP),
+                        col_names =  c("ID_SCEN", paste0("M_", ID_MESE_MAT)), skip = 1) %>%
+  pivot_longer(cols = paste0("M_", ID_MESE_MAT), names_to = "ID_MESE_MAT", names_prefix = "M_", values_to = "VAL_TASSO") %>%
+  mutate(COD_VALUTA = "GBP",
+         ID_MESE_MAT = as.numeric(ID_MESE_MAT),
+         ID_YEAR = 1)
+
+curve_1y_big <- bind_rows(curve_EUR, curve_GBP, curve_JPY, curve_USD)
+
+curve_1y <- curve_1y_big  %>%
+  group_by(ID_YEAR, COD_VALUTA) %>%
+  mutate(ID_SCEN_CLASS = cut(ID_SCEN, 100)) %>%
+  ungroup()
+
 
 #--------------- 004 CARICAMENTO FILE OUTPUT SEZIONI PRECEDENTI ---------------#
 
@@ -111,7 +157,7 @@ notional_prep <- .notional$notional_prep
 
 #---------------------- 002 CALCOLO INTERPOLAZIONE SPLINE ---------------------#
 
-curve_1y_interpol <- do_interpolazione_spline(.curve_1y = curve_1y, .max_x = max_x)
+curve_1y_interpol <- do_interpolazione_spline(.curve_1y = curve_1y, .max_x = max_x, .n_core)
 message('CALC 002: interpolazione_spline')
 
 #---------------------- 003 CALCOLO DISCOUNT FACTOR ---------------------------#

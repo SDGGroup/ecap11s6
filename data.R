@@ -38,6 +38,10 @@ mapping_entity <- read_excel(file.path(path_in_local, file_mapping_entity),
 
 # caricamento term structure
 curve_1y <- read_excel(file.path(path_in_local, file_term_structure))
+curve_1y <- curve_1y  %>%
+  group_by(ID_YEAR, COD_VALUTA) %>%
+  mutate(ID_SCEN_CLASS = cut(ID_SCEN, 10)) %>%
+  ungroup()
 
 # notional base
 notional_base <- read_delim(file.path(path_out_local, file_notional_base),
