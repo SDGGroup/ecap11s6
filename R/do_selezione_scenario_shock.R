@@ -85,24 +85,28 @@ do_selezione_scenario_shock <- function(.curve_1y_interpol,
       group_by(ID_SCEN_CLASS) %>%
       group_split()
 
-    scenari_prep <- mclapply(list_split,
-                             function(.x) {.x %>%
-                                 group_by(ID_YEAR, COD_VALUTA, ID_SCEN) %>%
-                                 mutate(min_DELTA_SHOCK_EFFETTIVO = min(DELTA_SHOCK_EFFETTIVO),
-                                        min_DELTA_SHOCK_NOMINALE = min(DELTA_SHOCK_NOMINALE),
-                                        peso = if_else(CONCORDANZA_SEGNO == 1, 10, 0) +
-                                          if_else(DELTA_SHOCK_EFFETTIVO == min_DELTA_SHOCK_EFFETTIVO, 5, 0) +
-                                          if_else(DELTA_SHOCK_NOMINALE == min_DELTA_SHOCK_NOMINALE, 1, 0)) %>%
-                                 filter(peso == max(peso)) %>%
-                                 slice(1) %>% # TODO aggiungere un warning se questo accade (riga non univoca)
-                                 ungroup() %>%
-                                 select(ID_YEAR,
-                                        COD_VALUTA,
-                                        ID_SCEN,
-                                        DES_SHOCK_FINALE,
-                                        ID_SCEN_CLASS)},
-                             mc.cores = .n_core)
-
+    cl <- makeCluster(.n_core)
+    clusterEvalQ(cl, {library(dplyr)})
+    scenari_prep <- parLapply(cl, list_split, function(.x) {
+      .x %>%
+        group_by(ID_YEAR, COD_VALUTA, ID_SCEN) %>%
+        mutate(min_DELTA_SHOCK_EFFETTIVO = min(DELTA_SHOCK_EFFETTIVO),
+               min_DELTA_SHOCK_NOMINALE = min(DELTA_SHOCK_NOMINALE),
+               peso = if_else(CONCORDANZA_SEGNO == 1, 10, 0) +
+                 if_else(DELTA_SHOCK_EFFETTIVO == min_DELTA_SHOCK_EFFETTIVO, 5, 0) +
+                 if_else(DELTA_SHOCK_NOMINALE == min_DELTA_SHOCK_NOMINALE, 1, 0)) %>%
+        filter(peso == max(peso)) %>%
+        slice(1) %>% # TODO aggiungere un warning se questo accade (riga non univoca)
+        ungroup() %>%
+        select(ID_YEAR,
+               COD_VALUTA,
+               ID_SCEN,
+               DES_SHOCK_FINALE,
+               ID_SCEN_CLASS)
+    })
+    stopCluster(cl) # kill cluster
+    closeAllConnections()
+    gc()
     scenari_prep <- map_dfr(scenari_prep, bind_rows)
 
   } else {

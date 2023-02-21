@@ -23,18 +23,23 @@ do_interpolazione_spline <- function(.curve_1y, .max_x, .n_core) {
     group_by(ID_SCEN_CLASS) %>%
     group_split()
 
-  curve_1y_interpol <-  mclapply(list_split ,
-                                 (function(.x) {
-                                   .x %>%
-                                     group_by(ID_YEAR, COD_VALUTA, ID_SCEN_CLASS, ID_SCEN) %>%
-                                     reframe(.interpolazione_spline(.x = ID_MESE_MAT, .y = VAL_TASSO, .max_x = .max_x), .groups='drop') %>%
-                                     select(COD_VALUTA,
-                                            ID_YEAR,
-                                            ID_SCEN,
-                                            ID_MESE_MAT = x,
-                                            VAL_TASSO = y,
-                                            ID_SCEN_CLASS)}),
-                                 mc.cores = .n_core)
+  cl <- makeCluster(.n_core)
+  clusterEvalQ(cl, {library(dplyr)})
+  clusterExport(cl, c(".interpolazione_spline",'.max_x'),envir = environment())
+  curve_1y_interpol <- parLapply(cl, list_split, function(.x) {
+    .x %>%
+      group_by(ID_YEAR, COD_VALUTA, ID_SCEN_CLASS, ID_SCEN) %>%
+      reframe(.interpolazione_spline(.x = ID_MESE_MAT, .y = VAL_TASSO, .max_x = .max_x), .groups='drop') %>%
+      select(COD_VALUTA,
+             ID_YEAR,
+             ID_SCEN,
+             ID_MESE_MAT = x,
+             VAL_TASSO = y,
+             ID_SCEN_CLASS)
+  })
+  stopCluster(cl) # kill cluster
+  closeAllConnections()
+  gc()
   curve_1y_interpol <- map_dfr(curve_1y_interpol, bind_rows)
 
   return(curve_1y_interpol)
