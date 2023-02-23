@@ -2,17 +2,17 @@
 #' @description
 #' Suddivide notional in notional_prep e notional_noprep.
 #' @param .notional tibble with 5 variables:
+#' * COD_ENTITY chr,
+#' * DES_SHOCK_FINALE chr,
+#' * ID_MESE_MAT int,
+#' * COD_VALUTA_FINALE chr,
+#' * VAL_NOTIONAL dbl.
+#' @return a list with 2 tibbles, each with 5 variables:
 #' * COD_VALUTA_FINALE chr,
 #' * COD_ENTITY chr,
-#' * ID_MESE_MAT dbl,
-#' * DES_SHOCK_FINALE dbl,
+#' * ID_MESE_MAT int,
+#' * DES_SHOCK_FINALE chr,
 #' * VAL_NOTIONAL dbl.
-#' @return a list with 2 tibble, each with 5 variables:
-#' * COD_VALUTA chr,
-#' * ID_MESE_MAT dbl,
-#' * ID_YEAR dbl,
-#' * ID_SCEN dbl,
-#' * VAL_TASSO dbl.
 #' @export
 
 do_notional_prep_noprep <- function(.notional) {

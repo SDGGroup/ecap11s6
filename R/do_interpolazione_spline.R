@@ -2,18 +2,20 @@
 #' @description
 #' Esegue interpolazione spline su VAL_TASSO, per ogni combinazione di ID_YEAR,
 #' COD_VALUTA e ID_SCEN.
-#' @param .curve_1y tibble with 5 variables:
+#' @param .curve tibble with 6 variables:
 #' * COD_VALUTA chr,
-#' * ID_MESE_MAT dbl,
-#' * ID_YEAR dbl,
-#' * ID_SCEN dbl,
+#' * ID_MESE_MAT int,
+#' * ID_YEAR int,
+#' * ID_SCEN int,
+#' * ID_SCEN_CLASS int,
 #' * VAL_TASSO dbl.
 #' @param .max_x int.
-#' @return tibble with 5 variables:
+#' @return tibble with 6 variables:
 #' * COD_VALUTA chr,
-#' * ID_MESE_MAT dbl,
-#' * ID_YEAR dbl,
-#' * ID_SCEN dbl,
+#' * ID_YEAR int,
+#' * ID_SCEN int,
+#' * ID_SCEN_CLASS int,
+#' * ID_MESE_MAT int,
 #' * VAL_TASSO dbl.
 #' @export
 do_interpolazione_spline <- function(.curve, .max_x) {

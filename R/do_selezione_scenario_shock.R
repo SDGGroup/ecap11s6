@@ -2,28 +2,39 @@
 #' @description
 #' Crea la struttura base per scenari simulati, in cui per ogni scenario
 #' viene agganciato lo schock corretto. Per no prepayment, si utilizza lo shock inserito in input.
-#' @param .curve_interpol tibble with 5 variables:
+#' @param .curve_interpol tibble with 7 variables:
 #' * COD_VALUTA chr,
-#' * ID_MESE_MAT dbl,
-#' * ID_YEAR dbl,
-#' * ID_SCEN dbl,
+#' * ID_YEAR int,
+#' * ID_SCEN int,
+#' * ID_SCEN_CLASS int,
+#' * ID_MESE_MAT int,
 #' * VAL_TASSO dbl.
-#' @param .shock_effettivi effettivi tibble object with 5 variables:
+#' * DISCOUNT_FACTOR dbl.
+#' @param .curve_interpol_scen0 tibble object with 7 variables:
 #' * COD_VALUTA chr,
-#' * DES_SHOCK_FINALE dbl,
-#' * ID_MESE_MAT dbl,
-#' * VAL_SHOCK_EFFETTIVO_BPS dbl,
+#' * ID_YEAR int,
+#' * ID_SCEN int,
+#' * ID_SCEN_CLASS int,
+#' * ID_MESE_MAT int,
+#' * VAL_TASSO dbl,
+#' * DISCOUNT_FACTOR dbl.
+#' @param .shock_effettivi effettivi tibble object with 5 variables:
+#' * DES_SHOCK_FINALE chr,
+#' * COD_VALUTA chr,
+#' * ID_MESE_MAT int,
 #' * VAL_SHOCK_NOMINALE_BPS dbl
+#' * VAL_SHOCK_EFFETTIVO_BPS dbl.
 #' @param .prepayment chr.
 #' @param .scenario_no_prepayment chr.
 #' @param .mesi_tenor_prepayment int.
-#' @return a list with 2 tibble, each with 5 variables:
+#' @return a list with 2 tibbles, each with 5 variables:
+#' * ID_YEAR int,
 #' * COD_VALUTA chr,
-#' * ID_MESE_MAT dbl,
-#' * ID_YEAR dbl,
-#' * ID_SCEN dbl,
-#' * VAL_TASSO dbl.
+#' * ID_SCEN int,
+#' * ID_SCEN_CLASS int,
+#' * DES_SHOCK_FINALE chr
 #' @export
+
 
 do_selezione_scenario_shock <- function(.curve_interpol,
                                         .curve_interpol_scen0,

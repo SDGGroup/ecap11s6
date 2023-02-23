@@ -2,27 +2,32 @@
 #' @description
 #' tba
 #' @param ecap a tibble object with 9 variables:
-#' * ID_YEAR dbl,
+#' * ID_YEAR int,
 #' * COD_VALUTA chr,
 #' * COD_ENTITY chr,
-#' * ECAP dbl,
+#' * VAL_ECAP dbl,
 #' * VAL_PERCENTILE dbl,
-#' * ID_SCEN dbl,
+#' * ID_SCEN int,
 #' * DES_SHOCK_FINALE chr,
 #' * DES_PREPAYMENT chr,
-#' * COD_RIPARTIZIONE dbl.
-#' @param .curve_1y_interpol tibble with 6 variables:
+#' * COD_RIPARTIZIONE chr.
+#' @param .curve_1y_interpol tibble with 7 variables:
 #' * COD_VALUTA chr,
-#' * ID_MESE_MAT dbl,
-#' * ID_YEAR dbl,
-#' * ID_SCEN dbl,
+#' * ID_YEAR int,
+#' * ID_SCEN int,
+#' * ID_SCEN_CLASS int,
+#' * ID_MESE_MAT int,
 #' * VAL_TASSO dbl.
 #' * DISCOUNT_FACTOR dbl.
-#' @return tibble with 5 variables:
+#' @return tibble with 9 variables:
+#' * ID_YEAR int,
 #' * COD_VALUTA chr,
-#' * ID_MESE_MAT dbl,
-#' * ID_YEAR dbl,
-#' * ID_SCEN dbl,
+#' * COD_ENTITY chr,
+#' * VAL_PERCENTILE dbl,
+#' * ID_SCEN int,
+#' * DES_SHOCK_FINALE chr,
+#' * DES_PREPAYMENT chr,
+#' * ID_MESE_MAT int,
 #' * VAL_TASSO dbl.
 #' @export
 

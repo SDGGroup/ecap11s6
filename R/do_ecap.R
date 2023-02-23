@@ -2,12 +2,12 @@
 #' @description
 #' tba
 #' @param .deltapv a tibble object with 7 variables:
-#' * ID_YEAR dbl,
+#' * ID_YEAR int,
 #' * COD_VALUTA chr,
-#' * ID_SCEN dbl,
+#' * ID_SCEN int,
 #' * DES_SHOCK_FINALE chr,
 #' * COD_ENTITY chr,
-#' * DELTA_PV dbl,
+#' * VAL_DELTA_PV dbl,
 #' * DES_PREPAYMENT chr.
 #' @param .mapping_entity
 #' * COD_ENTITY chr,
@@ -18,15 +18,15 @@
 #' @param .quantiles vector of quantiles
 #' @param .prepayment chr.
 #' @return a tibble object with 9 variables:
-#' * ID_YEAR dbl,
+#' * ID_YEAR int,
 #' * COD_VALUTA chr,
 #' * COD_ENTITY chr,
-#' * ECAP dbl,
+#' * VAL_ECAP dbl,
 #' * VAL_PERCENTILE dbl,
-#' * ID_SCEN dbl,
+#' * ID_SCEN int,
 #' * DES_SHOCK_FINALE chr,
 #' * DES_PREPAYMENT chr,
-#' * COD_RIPARTIZIONE dbl.
+#' * COD_RIPARTIZIONE chr.
 #' @export
 
 do_ecap <- function(.deltapv, .mapping_entity, .quantiles){
@@ -39,7 +39,7 @@ do_ecap <- function(.deltapv, .mapping_entity, .quantiles){
     filter(!COD_ENTITY %in% c("00001", "00005")) %>%
     mutate(peso = ECAP/sum(ECAP),
            ECAP = ECAP_00001*peso,
-           COD_RIPARTIZIONE = 2) %>%
+           COD_RIPARTIZIONE = "2") %>%
     ungroup() %>%
     select(ID_YEAR,
            COD_VALUTA,
@@ -63,7 +63,7 @@ do_ecap <- function(.deltapv, .mapping_entity, .quantiles){
     filter(COD_ENTITY %in% c("00005", filiali_estere)) %>%
     mutate(peso = ECAP/sum(ECAP),
            ECAP = ECAP_00001*peso,
-           COD_RIPARTIZIONE = 1) %>%
+           COD_RIPARTIZIONE = "1") %>%
     ungroup() %>%
     select(ID_YEAR,
            COD_VALUTA,
@@ -104,16 +104,25 @@ do_ecap <- function(.deltapv, .mapping_entity, .quantiles){
 #' .do_ecap_base
 #' @description
 #' Calcolo ECAP arricchito
-#' @param .deltaPV tibble object with 7 variables:
-#' * ID_YEAR dbl,
+#' @param .deltapv a tibble object with 7 variables:
+#' * ID_YEAR int,
 #' * COD_VALUTA chr,
-#' * ID_SCEN dbl,
+#' * ID_SCEN int,
 #' * DES_SHOCK_FINALE chr,
 #' * COD_ENTITY chr,
-#' * DELTA_PV dbl,
+#' * VAL_DELTA_PV dbl,
 #' * DES_PREPAYMENT chr.
-#' @param .quantiles tba
-#' @return a tibble tba
+#' @param .quantiles vector of quantiles dbl
+#' @return a tibble object with 9 variables:
+#' * ID_YEAR int,
+#' * COD_VALUTA chr,
+#' * COD_ENTITY chr,
+#' * ECAP dbl,
+#' * VAL_PERCENTILE dbl,
+#' * ID_SCEN int,
+#' * DES_SHOCK_FINALE chr,
+#' * DES_PREPAYMENT chr,
+#' * COD_RIPARTIZIONE chr.
 #' @export
 .do_ecap_base <- function(.deltapv, .quantiles){
 
@@ -141,8 +150,15 @@ do_ecap <- function(.deltapv, .mapping_entity, .quantiles){
     group_by(ID_YEAR, COD_VALUTA, COD_ENTITY, VAL_PERCENTILE, DES_PREPAYMENT) %>%
     slice(1) %>%
     ungroup() %>%
-    select(ID_YEAR, COD_VALUTA, COD_ENTITY, ECAP, VAL_PERCENTILE, ID_SCEN, DES_SHOCK_FINALE, DES_PREPAYMENT) %>%
-    mutate(COD_RIPARTIZIONE = 0)
+    select(ID_YEAR,
+           COD_VALUTA,
+           COD_ENTITY,
+           ECAP,
+           VAL_PERCENTILE,
+           ID_SCEN,
+           DES_SHOCK_FINALE,
+           DES_PREPAYMENT) %>%
+    mutate(COD_RIPARTIZIONE = "0")
 
   return(ECAP_arricchito)
 

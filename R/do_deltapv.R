@@ -1,50 +1,65 @@
 #' do_deltapv.R
 #' @description
 #' Calcola DELTA PV.
+#' @param .curve_interpol tibble object with 7 variables:
+#' * COD_VALUTA chr,
+#' * ID_YEAR int,
+#' * ID_SCEN int,
+#' * ID_SCEN_CLASS int,
+#' * ID_MESE_MAT int,
+#' * VAL_TASSO dbl,
+#' * DISCOUNT_FACTOR dbl.
+#' @param .curve_interpol_scen0 tibble object with 7 variables:
+#' * COD_VALUTA chr,
+#' * ID_YEAR int,
+#' * ID_SCEN int,
+#' * ID_SCEN_CLASS int,
+#' * ID_MESE_MAT int,
+#' * VAL_TASSO dbl,
+#' * DISCOUNT_FACTOR dbl.
 #' @param .formula_delta_pv chr.
 #' @param .prepayment chr.
 #' @param .scenari_prep tibble object with 4 variables:
+#' * ID_YEAR int,
 #' * COD_VALUTA chr,
-#' * ID_YEAR dbl,
-#' * ID_SCEN dbl,
+#' * ID_SCEN int,
 #' * DES_SHOCK_FINALE chr.
 #' @param .scenari_noprep tibble object with 4 variables:
+#' * ID_YEAR int,
 #' * COD_VALUTA chr,
-#' * ID_YEAR dbl,
-#' * ID_SCEN dbl,
+#' * ID_SCEN int,
 #' * DES_SHOCK_FINALE chr.
+#' @param .notional tibble object with 5 variables:
+#' * COD_VALUTA_FINALE chr,
+#' * COD_ENTITY chr,
+#' * ID_MESE_MAT int,
+#' * DES_SHOCK_FINALE chr,
+#' * VAL_NOTIONAL dbl.
 #' @param .notional_prep tibble object with 5 variables:
 #' * COD_VALUTA_FINALE chr,
 #' * COD_ENTITY chr,
-#' * ID_MESE_MAT dbl,
-#' * DES_SHOCK_FINALE dbl,
+#' * ID_MESE_MAT int,
+#' * DES_SHOCK_FINALE chr,
 #' * VAL_NOTIONAL dbl.
 #' @param .notional_noprep tibble object with 5 variables:
 #' * COD_VALUTA_FINALE chr,
 #' * COD_ENTITY chr,
-#' * ID_MESE_MAT dbl,
-#' * DES_SHOCK_FINALE dbl,
+#' * ID_MESE_MAT int,
+#' * DES_SHOCK_FINALE chr,
 #' * VAL_NOTIONAL dbl.
 #' @param .notional_base tibble object with 5 variables:
-#' * COD_VALUTA_FINALE chr,
 #' * COD_ENTITY chr,
-#' * ID_MESE_MAT dbl,
-#' * DES_SHOCK_FINALE dbl,
+#' * DES_SHOCK_FINALE chr,
+#' * ID_MESE_MAT int,
+#' * COD_VALUTA_FINALE chr,
 #' * VAL_NOTIONAL dbl.
-#' @param .curve_1y_interpol tibble object with 5 variables:
-#' *  COD_VALUTA chr,
-#' *  ID_YEAR dbl,
-#' *  ID_SCEN dbl,
-#' *  ID_MESE_MAT int,
-#' *  VAL_TASSO dbl,
-#' *  DISCOUNT_FACTOR dbl.
 #' @return a tibble object with 7 variables:
-#' * ID_YEAR dbl,
+#' * ID_YEAR int,
 #' * COD_VALUTA chr,
-#' * ID_SCEN dbl,
+#' * ID_SCEN int,
 #' * DES_SHOCK_FINALE chr,
 #' * COD_ENTITY chr,
-#' * DELTA_PV dbl,
+#' * VAL_DELTA_PV dbl,
 #' * DES_PREPAYMENT chr.
 #' @export
 

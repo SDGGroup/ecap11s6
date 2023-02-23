@@ -4,25 +4,26 @@
 #' @param .notional_prep tibble with 5 variables:
 #' * COD_VALUTA_FINALE chr,
 #' * COD_ENTITY chr,
-#' * ID_MESE_MAT dbl,
-#' * DES_SHOCK_FINALE dbl,
+#' * ID_MESE_MAT int,
+#' * DES_SHOCK_FINALE chr,
 #' * VAL_NOTIONAL dbl.
 #' @param .notional_noprep tibble with 5 variables:
 #' * COD_VALUTA_FINALE chr,
 #' * COD_ENTITY chr,
-#' * ID_MESE_MAT dbl,
-#' * DES_SHOCK_FINALE dbl,
+#' * ID_MESE_MAT int,
+#' * DES_SHOCK_FINALE chr,
 #' * VAL_NOTIONAL dbl.
-#' @param .mapping_shock tibble with 4 variables:
-#' * DES_SHOCK_SHIFT_SENSITIVITY chr,
-#' * DES_SHOCK_DISCOUNT_FACTOR chr,
-#' * DES_SHOCK_FINALE dbl,
-#' * VAL_SHOCK_NOMINALE_BPS dbl.
+#' @param .mapping_entity tibble with 5 variables:
+#' * COD_ENTITY chr,
+#' * DES_ENTITY chr,
+#' * COD_BU_TDB chr,
+#' * COD_BU_RND chr,
+#' * FLG_CAPOGRUPPO chr.
 #' @return a list with 3 tibbles, each with 5 variables:
 #' * COD_VALUTA_FINALE chr,
 #' * COD_ENTITY chr,
-#' * ID_MESE_MAT dbl,
-#' * DES_SHOCK_FINALE dbl,
+#' * ID_MESE_MAT int,
+#' * DES_SHOCK_FINALE chr,
 #' * VAL_NOTIONAL dbl.
 #' @export
 do_entity_aggregata <- function(.notional_prep, .notional_noprep, .mapping_entity) {
