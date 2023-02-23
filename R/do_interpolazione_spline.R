@@ -16,10 +16,10 @@
 #' * ID_SCEN dbl,
 #' * VAL_TASSO dbl.
 #' @export
-do_interpolazione_spline <- function(.curve_1y, .max_x) {
+do_interpolazione_spline <- function(.curve, .max_x) {
 
-  curve_1y_interpol <- .curve_1y %>%
-    group_by(ID_YEAR, COD_VALUTA, ID_SCEN) %>%
+  curve_interpol <- .curve %>%
+    group_by(ID_SCEN_CLASS, ID_YEAR, COD_VALUTA, ID_SCEN) %>%
     # Returning more (or less) than 1 row per `summarise()` group was deprecated in dplyr 1.1.0.
     # use reframe()
     reframe(.interpolazione_spline(.x = ID_MESE_MAT, .y = VAL_TASSO, .max_x = .max_x),
@@ -27,9 +27,10 @@ do_interpolazione_spline <- function(.curve_1y, .max_x) {
     select(COD_VALUTA,
            ID_YEAR,
            ID_SCEN,
+           ID_SCEN_CLASS,
            ID_MESE_MAT = x,
            VAL_TASSO = y)
 
-  return(curve_1y_interpol)
+  return(curve_interpol)
 
 }

@@ -1,6 +1,6 @@
 test_that("do_interpolazione_spline_&_discount_factor", {
 
-  .curve_1y_interpol <- do_interpolazione_spline(.curve_1y = curve_1y_tst, .max_x = 480)
+  .curve_1y_interpol <- do_interpolazione_spline(.curve = curve_1y_tst, .max_x = 480)
   out <- do_discount_factor(.curve_1y_interpol)
 
   expect_equal(nrow(out), 3843840)

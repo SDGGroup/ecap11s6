@@ -51,12 +51,12 @@ message('LOAD 001: mapping_entity')
 curve_1y <- read_excel(file.path(path_in_local, file_term_structure))
 message('LOAD 002: curve_1y')
 
-# caricamento dati grossi
-File_term_structure_EUR <- 'TermStr_Eur_2022_12_sstd_5Y_II_UPLOAD.csv'
-File_term_structure_GBP <- 'TermStr_GBP_2022_12_sstd_5Y.csv'
-File_term_structure_JPY <- 'TermStr_JPY_2022_12_sstd_5Y.csv'
-File_term_structure_USD <- 'TermStr_USD_2022_12_sstd_5Y.csv'
-
+# # caricamento dati grossi
+# File_term_structure_EUR <- 'TermStr_Eur_2022_12_sstd_5Y_II_UPLOAD.csv'
+# File_term_structure_GBP <- 'TermStr_GBP_2022_12_sstd_5Y.csv'
+# File_term_structure_JPY <- 'TermStr_JPY_2022_12_sstd_5Y.csv'
+# File_term_structure_USD <- 'TermStr_USD_2022_12_sstd_5Y.csv'
+#
 # ID_MESE_MAT <- curve_1y %>%
 #   distinct(ID_MESE_MAT) %>%
 #   pull()
@@ -88,8 +88,8 @@ File_term_structure_USD <- 'TermStr_USD_2022_12_sstd_5Y.csv'
 #          ID_YEAR = 1)
 #
 # curve_1y_big <- bind_rows(curve_EUR, curve_GBP, curve_JPY, curve_USD)
-
-#curve_1y <- curve_1y_big
+#
+# curve_1y <- curve_1y_big
 
 #--------------- 004 CARICAMENTO FILE OUTPUT SEZIONI PRECEDENTI ---------------#
 
@@ -127,26 +127,8 @@ message('LOAD 005: shock_effettivi')
 ################################################################################
 #---------------------------- FASE DI CALCOLO-----------------------------------
 ################################################################################
-list_split <- curve_1y %>%
-  group_by(ID_YEAR, COD_VALUTA) %>%
-  mutate(ID_SCEN_CLASS = cut(ID_SCEN, 10)) %>%
-  group_by(ID_YEAR, COD_VALUTA, ID_SCEN_CLASS) %>%
-  group_split()
-#
-# out <- do_bl(.notional = notional,
-#                  .notional_base = notional_base,
-#                  .mapping_entity = mapping_entity,
-#                  .curve_1y = list_split[[1]],
-#                  .max_x = max_x,
-#                  .shock_effettivi = shock_effettivi,
-#                  .prepayment = prepayment,
-#                  .scenario_no_prepayment = scenario_no_prepayment,
-#                  .mesi_tenor_prepayment = mesi_tenor_prepayment,
-#                  .formula_delta_pv = formula_delta_pv,
-#                  .percentile1 = percentile1,
-#                  .percentile2 = percentile2)
-
-out <- do_bl_par(.notional = notional,
+tic()
+out <- do_bl(.notional = notional,
              .notional_base = notional_base,
               .mapping_entity = mapping_entity,
               .curve_1y = curve_1y,
@@ -158,8 +140,9 @@ out <- do_bl_par(.notional = notional,
               .formula_delta_pv = formula_delta_pv,
               .percentile1 = percentile1,
               .percentile2 = percentile2,
+             .n_split = 5000,
              .n_core = 30)
-
+toc()
 
 ################################################################################
 #---------------------------- FASE DI OUTPUT -----------------------------------

@@ -48,20 +48,21 @@
 #' * DES_PREPAYMENT chr.
 #' @export
 
-do_deltapv <- function(.formula_delta_pv,
+do_deltapv <- function(.curve_interpol,
+                       .curve_interpol_scen0,
+                       .formula_delta_pv,
                        .prepayment,
                        .scenari_prep,
                        .scenari_noprep,
                        .notional,
                        .notional_prep,
                        .notional_noprep,
-                       .notional_base,
-                       .curve_1y_interpol){
+                       .notional_base){
 
   if(.formula_delta_pv == "GESTIONALE"){
     if(.prepayment == "NO"){
 
-      deltaPV_noprep <- .do_deltapv_gestionale(.scenari_noprep, .notional, .curve_1y_interpol) %>%
+      deltaPV_noprep <- .do_deltapv_gestionale(.curve_interpol,  .curve_interpol_scen0, .scenari_noprep, .notional) %>%
         mutate(DES_PREPAYMENT = "N")
 
       deltaPV_prep <- tibble()
@@ -69,14 +70,14 @@ do_deltapv <- function(.formula_delta_pv,
     } else {
 
       #calcoliamo il caso senza prepayment (in due pezzi distinti, perchè uno ci servirà anche per il caso con prepayment)
-      deltaPV_NN <- .do_deltapv_gestionale(.scenari_noprep, .notional_noprep, .curve_1y_interpol)
-      deltaPV_NS <- .do_deltapv_gestionale(.scenari_noprep, .notional_prep, .curve_1y_interpol)
+      deltaPV_NN <- .do_deltapv_gestionale(.curve_interpol, .curve_interpol_scen0, .scenari_noprep, .notional_noprep)
+      deltaPV_NS <- .do_deltapv_gestionale(.curve_interpol, .curve_interpol_scen0,.scenari_noprep, .notional_prep)
       deltaPV_noprep <- deltaPV_NN %>%
         bind_rows(deltaPV_NS) %>%
         mutate(DES_PREPAYMENT = "N")
 
       #calcoliamo il caso con prepayment (e)
-      deltaPV_SS <- .do_deltapv_gestionale(.scenari_prep, .notional_prep, .curve_1y_interpol)
+      deltaPV_SS <- .do_deltapv_gestionale(.curve_interpol, .curve_interpol_scen0, .scenari_prep, .notional_prep)
       deltaPV_prep <- bind_rows(deltaPV_SS,
                                 deltaPV_NN) %>%
         mutate(DES_PREPAYMENT = "Y")
@@ -86,7 +87,7 @@ do_deltapv <- function(.formula_delta_pv,
 
     if(.prepayment == "NO"){
 
-      deltaPV_noprep <- .do_deltapv_segnaletico(.scenari_noprep, .notional, .notional_base, .curve_1y_interpol) %>%
+      deltaPV_noprep <- .do_deltapv_segnaletico(.curve_interpol, .curve_interpol_scen0, .scenari_noprep, .notional, .notional_base) %>%
         mutate(DES_PREPAYMENT = "N")
 
       deltaPV_prep <- tibble()
@@ -94,15 +95,15 @@ do_deltapv <- function(.formula_delta_pv,
     } else {
 
       #calcoliamo il caso senza prepayment (in due pezzi distinti, perchè uno ci servirà anche per il caso con prepayment)
-      deltaPV_NN <- .do_deltapv_segnaletico(.scenari_noprep, .notional_noprep, .notional_base, .curve_1y_interpol)
-      deltaPV_NS <- .do_deltapv_segnaletico(.scenari_noprep, .notional_prep, .notional_base, .curve_1y_interpol)
+      deltaPV_NN <- .do_deltapv_segnaletico(.curve_interpol, .curve_interpol_scen0, .scenari_noprep, .notional_noprep, .notional_base)
+      deltaPV_NS <- .do_deltapv_segnaletico(.curve_interpol, .curve_interpol_scen0, .scenari_noprep, .notional_prep, .notional_base)
 
 
       deltaPV_noprep <- bind_rows(deltaPV_NN,
                                   deltaPV_NS) %>%
         mutate(DES_PREPAYMENT = "N")
 
-      deltaPV_SS <- .do_deltapv_segnaletico(.scenari_prep, .notional_prep, .notional_base, .curve_1y_interpol)
+      deltaPV_SS <- .do_deltapv_segnaletico(.curve_interpol, .curve_interpol_scen0, .scenari_prep, .notional_prep, .notional_base)
       deltaPV_prep <- bind_rows(deltaPV_SS,
                                 deltaPV_NN) %>%
         mutate(DES_PREPAYMENT = "Y")
@@ -131,23 +132,37 @@ do_deltapv <- function(.formula_delta_pv,
 #' @param .curve_1y_interpol tba
 #' @return a tibble tba
 #' @export
-.do_deltapv_gestionale <- function(.scenari, .notional, .curve_1y_interpol){
+.do_deltapv_gestionale <- function(.curve_interpol, .curve_interpol_scen0, .scenari, .notional){
 
-  scenari_notional <- .scenari %>%
-    inner_join(.notional,
-               by = c('COD_VALUTA' = 'COD_VALUTA_FINALE', 'DES_SHOCK_FINALE' = 'DES_SHOCK_FINALE'),
-               multiple = "all") %>%
-    select(ID_YEAR, COD_VALUTA, ID_SCEN, DES_SHOCK_FINALE, COD_ENTITY, ID_MESE_MAT, VAL_NOTIONAL)
-  # num = years*scenari*480*cod_entity
+  .curr_scen_class <- .curve_interpol %>% distinct(ID_SCEN_CLASS) %>% pull
+  scenari_notional_curve <- .scenari %>%
+    filter(ID_SCEN_CLASS %in% .curr_scen_class) %>%
+    inner_join(.notional,by = c('COD_VALUTA' = 'COD_VALUTA_FINALE', 'DES_SHOCK_FINALE' = 'DES_SHOCK_FINALE'), multiple = "all") %>%
+    select(ID_YEAR,
+           COD_VALUTA,
+           ID_SCEN,
+           ID_SCEN_CLASS,
+           DES_SHOCK_FINALE,
+           COD_ENTITY,
+           ID_MESE_MAT,
+           VAL_NOTIONAL) %>%
+    left_join(.curve_interpol, by = c("ID_YEAR", 'COD_VALUTA', 'ID_MESE_MAT', 'ID_SCEN', "ID_SCEN_CLASS"), multiple = "all") %>%
+    select(ID_YEAR,
+           COD_VALUTA,
+           ID_SCEN,
+           ID_SCEN_CLASS,
+           DES_SHOCK_FINALE,
+           COD_ENTITY,
+           ID_MESE_MAT,
+           VAL_NOTIONAL,
+           DISCOUNT_FACTOR)
 
-  scenari_notional_curve <- scenari_notional %>%
-    left_join(.curve_1y_interpol, by = c("ID_YEAR", 'COD_VALUTA', 'ID_MESE_MAT', 'ID_SCEN'),
-              multiple = "all") %>%
-    select(ID_YEAR, COD_VALUTA, ID_SCEN, DES_SHOCK_FINALE, COD_ENTITY, ID_MESE_MAT, VAL_NOTIONAL, DISCOUNT_FACTOR)
-
-  discount_factor_0 <- .curve_1y_interpol %>%
+  discount_factor_0 <- .curve_interpol_scen0 %>%
     filter (ID_SCEN == 0) %>%
-    select(ID_YEAR, COD_VALUTA,ID_MESE_MAT,DISCOUNT_FACTOR_0 = DISCOUNT_FACTOR)
+    select(ID_YEAR,
+           COD_VALUTA,
+           ID_MESE_MAT,
+           DISCOUNT_FACTOR_0 = DISCOUNT_FACTOR)
 
   scenari_notional_curve_df0 <- scenari_notional_curve %>%
     left_join(discount_factor_0, by = c("ID_YEAR", 'COD_VALUTA','ID_MESE_MAT'),
@@ -156,12 +171,18 @@ do_deltapv <- function(.formula_delta_pv,
   deltaPV <- scenari_notional_curve_df0 %>%
     mutate(PV_SIM = VAL_NOTIONAL * DISCOUNT_FACTOR,
            PV_0 = VAL_NOTIONAL * DISCOUNT_FACTOR_0) %>%
-    group_by(ID_YEAR, COD_VALUTA , ID_SCEN , DES_SHOCK_FINALE,  COD_ENTITY ) %>%
+    group_by(ID_YEAR, COD_VALUTA , ID_SCEN , ID_SCEN_CLASS, DES_SHOCK_FINALE,  COD_ENTITY ) %>%
     summarise(PV_SIM = sum(PV_SIM, na.rm  = TRUE),
               PV_0 = sum(PV_0),
               .groups = 'drop') %>%
     mutate(DELTA_PV = PV_SIM - PV_0) %>%
-    select(ID_YEAR, COD_VALUTA, ID_SCEN, DES_SHOCK_FINALE, COD_ENTITY, DELTA_PV)
+    select(ID_YEAR,
+           COD_VALUTA,
+           ID_SCEN,
+           ID_SCEN_CLASS,
+           DES_SHOCK_FINALE,
+           COD_ENTITY,
+           DELTA_PV)
 
   return(deltaPV)
 }
@@ -175,30 +196,39 @@ do_deltapv <- function(.formula_delta_pv,
 #' @param .curve_1y_interpol tba
 #' @return a tibble tba
 #' @export
-.do_deltapv_segnaletico <- function(.scenari, .notional, .notional_base, .curve_1y_interpol){
+.do_deltapv_segnaletico <- function(.curve_interpol, .curve_interpol_scen0, .scenari, .notional, .notional_base){
 
-  scenari_notional <- .scenari %>%
+  .curr_scen_class <- .curve_interpol %>% distinct(ID_SCEN_CLASS) %>% pull
+  scenari_notional_curve <- .scenari %>%
+    filter(ID_SCEN_CLASS %in% .curr_scen_class) %>%
     inner_join(.notional,
                by = c('COD_VALUTA' = 'COD_VALUTA_FINALE', 'DES_SHOCK_FINALE' = 'DES_SHOCK_FINALE'),
                multiple = "all") %>%
-    select(ID_YEAR, COD_VALUTA, ID_SCEN, DES_SHOCK_FINALE, COD_ENTITY, ID_MESE_MAT, VAL_NOTIONAL) %>%
+    select(ID_YEAR,
+           COD_VALUTA,
+           ID_SCEN,
+           ID_SCEN_CLASS,
+           DES_SHOCK_FINALE,
+           COD_ENTITY,
+           ID_MESE_MAT,
+           VAL_NOTIONAL) %>%
     left_join(.notional_base, by = c("COD_VALUTA" = "COD_VALUTA_FINALE", "COD_ENTITY", "ID_MESE_MAT"),
               multiple = "all") %>%
     select(ID_YEAR,
            COD_VALUTA,
            ID_SCEN,
+           ID_SCEN_CLASS,
            DES_SHOCK_FINALE = DES_SHOCK_FINALE.x,
            COD_ENTITY,
            ID_MESE_MAT,
            VAL_NOTIONAL = VAL_NOTIONAL.x,
-           VAL_NOTIONAL_BASE = VAL_NOTIONAL.y)
-
-  scenari_notional_curve <- scenari_notional %>%
-    left_join(.curve_1y_interpol, by = c("ID_YEAR", 'COD_VALUTA', 'ID_MESE_MAT', 'ID_SCEN'),
+           VAL_NOTIONAL_BASE = VAL_NOTIONAL.y) %>%
+    left_join(.curve_interpol, by = c("ID_YEAR", 'COD_VALUTA', 'ID_MESE_MAT', 'ID_SCEN', "ID_SCEN_CLASS"),
               multiple = "all") %>%
     select(ID_YEAR,
            COD_VALUTA,
            ID_SCEN,
+           ID_SCEN_CLASS,
            DES_SHOCK_FINALE,
            COD_ENTITY,
            ID_MESE_MAT,
@@ -206,9 +236,12 @@ do_deltapv <- function(.formula_delta_pv,
            VAL_NOTIONAL_BASE,
            DISCOUNT_FACTOR)
 
-  discount_factor_0 <- .curve_1y_interpol %>%
+  discount_factor_0 <- .curve_interpol_scen0 %>%
     filter (ID_SCEN == 0) %>%
-    select(ID_YEAR, COD_VALUTA,ID_MESE_MAT,DISCOUNT_FACTOR_0 = DISCOUNT_FACTOR)
+    select(ID_YEAR,
+           COD_VALUTA,
+           ID_MESE_MAT,
+           DISCOUNT_FACTOR_0 = DISCOUNT_FACTOR)
 
   scenari_notional_curve_df0 <- scenari_notional_curve %>%
     left_join(discount_factor_0, by = c("ID_YEAR", 'COD_VALUTA','ID_MESE_MAT'),
@@ -217,12 +250,18 @@ do_deltapv <- function(.formula_delta_pv,
   deltaPV <- scenari_notional_curve_df0 %>%
     mutate(PV_SIM = VAL_NOTIONAL * DISCOUNT_FACTOR,
            PV_0 = VAL_NOTIONAL_BASE * DISCOUNT_FACTOR_0) %>%
-    group_by(ID_YEAR, COD_VALUTA , ID_SCEN , DES_SHOCK_FINALE,  COD_ENTITY ) %>%
+    group_by(ID_YEAR, COD_VALUTA , ID_SCEN , ID_SCEN_CLASS, DES_SHOCK_FINALE,  COD_ENTITY ) %>%
     summarise(PV_SIM = sum(PV_SIM, na.rm  = TRUE),
               PV_0 = sum(PV_0),
               .groups = 'drop') %>%
     mutate(DELTA_PV = PV_SIM - PV_0) %>%
-    select(ID_YEAR, COD_VALUTA, ID_SCEN, DES_SHOCK_FINALE, COD_ENTITY, DELTA_PV)
+    select(ID_YEAR,
+           COD_VALUTA,
+           ID_SCEN,
+           ID_SCEN_CLASS,
+           DES_SHOCK_FINALE,
+           COD_ENTITY,
+           DELTA_PV)
 
   return(deltaPV)
 }
