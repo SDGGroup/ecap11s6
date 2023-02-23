@@ -181,8 +181,8 @@ do_deltapv <- function(.curve_interpol,
 
   scenari_notional_curve_df0 <- scenari_notional_curve %>%
     left_join(discount_factor_0, by = c("ID_YEAR", 'COD_VALUTA','ID_MESE_MAT'),
-              multiple = "all")
-
+              multiple = "all") 
+  
   deltaPV <- scenari_notional_curve_df0 %>%
     mutate(PV_SIM = VAL_NOTIONAL * DISCOUNT_FACTOR,
            PV_0 = VAL_NOTIONAL * DISCOUNT_FACTOR_0) %>%
@@ -260,8 +260,8 @@ do_deltapv <- function(.curve_interpol,
 
   scenari_notional_curve_df0 <- scenari_notional_curve %>%
     left_join(discount_factor_0, by = c("ID_YEAR", 'COD_VALUTA','ID_MESE_MAT'),
-              multiple = "all")
-
+              multiple = "all") 
+  
   deltaPV <- scenari_notional_curve_df0 %>%
     mutate(PV_SIM = VAL_NOTIONAL * DISCOUNT_FACTOR,
            PV_0 = VAL_NOTIONAL_BASE * DISCOUNT_FACTOR_0) %>%
