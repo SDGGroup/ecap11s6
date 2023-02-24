@@ -1,23 +1,23 @@
 #' do_ecap.R
 #' @description
 #' tba
-#' @param .deltapv a tibble object with 7 variables:
+#' @param .deltapv tibble con 7 variabili:
 #' * ID_YEAR int,
 #' * COD_VALUTA chr,
 #' * ID_SCEN int,
 #' * DES_SHOCK_FINALE chr,
 #' * COD_ENTITY chr,
 #' * VAL_DELTA_PV dbl,
-#' * DES_PREPAYMENT chr.
-#' @param .mapping_entity
+#' * DES_PREPAYMENT chr
+#' @param .mapping_entity con 5 variabili
 #' * COD_ENTITY chr,
 #' * DES_ENTITY chr,
 #' * COD_NU_TDB chr,
 #' * COD_BU_RND chr,
-#' * FLG_CAPOGRUPPO chr,
-#' @param .quantiles vector of quantiles
-#' @param .prepayment chr.
-#' @return a tibble object with 9 variables:
+#' * FLG_CAPOGRUPPO chr
+#' @param .quantiles dbl vettore di quantili
+#' @param .prepayment chr
+#' @return a tibble  con 9 variabili:
 #' * ID_YEAR int,
 #' * COD_VALUTA chr,
 #' * COD_ENTITY chr,
@@ -26,7 +26,7 @@
 #' * ID_SCEN int,
 #' * DES_SHOCK_FINALE chr,
 #' * DES_PREPAYMENT chr,
-#' * COD_RIPARTIZIONE chr.
+#' * COD_RIPARTIZIONE chr
 #' @export
 
 do_ecap <- function(.deltapv, .mapping_entity, .quantiles){
@@ -104,16 +104,16 @@ do_ecap <- function(.deltapv, .mapping_entity, .quantiles){
 #' .do_ecap_base
 #' @description
 #' Calcolo ECAP arricchito
-#' @param .deltapv a tibble object with 7 variables:
+#' @param .deltapv tibble con 7 variabili:
 #' * ID_YEAR int,
 #' * COD_VALUTA chr,
 #' * ID_SCEN int,
 #' * DES_SHOCK_FINALE chr,
 #' * COD_ENTITY chr,
 #' * VAL_DELTA_PV dbl,
-#' * DES_PREPAYMENT chr.
-#' @param .quantiles vector of quantiles dbl
-#' @return a tibble object with 9 variables:
+#' * DES_PREPAYMENT chr
+#' @param .quantiles dbl vettore di quantili
+#' @return tibble con 9 variabili:
 #' * ID_YEAR int,
 #' * COD_VALUTA chr,
 #' * COD_ENTITY chr,
@@ -122,7 +122,7 @@ do_ecap <- function(.deltapv, .mapping_entity, .quantiles){
 #' * ID_SCEN int,
 #' * DES_SHOCK_FINALE chr,
 #' * DES_PREPAYMENT chr,
-#' * COD_RIPARTIZIONE chr.
+#' * COD_RIPARTIZIONE chr
 #' @export
 .do_ecap_base <- function(.deltapv, .quantiles){
 

@@ -42,7 +42,7 @@ storicizza_delta_pv <- 'SI' #SI/NO
 max_x <- 480
 scenario_no_prepayment <- "100"
 n_split <- 5000
-n_core <- 30
+n_core <- 20
 
 
 #---------------- 003 CARICAMENTO FILE ----------------------------------------#
@@ -54,7 +54,10 @@ mapping_entity <- read_excel(file.path(path_in_local, file_mapping_entity),
 message('LOAD 001: mapping_entity')
 
 # caricamento term structure
-curve_1y <- read_excel(file.path(path_in_local, file_term_structure))
+curve_1y <- read_excel(file.path(path_in_local, file_term_structure)) %>% 
+  mutate(ID_YEAR = as.integer(ID_MESE_MAT),
+         ID_SCEN = as.integer(ID_MESE_MAT),
+         ID_MESE_MAT = as.integer(ID_MESE_MAT))
 message('LOAD 002: curve_1y')
 
 # caricamento dati grossi
@@ -72,26 +75,30 @@ curve_EUR <- read_delim(file.path(path_in_local, File_term_structure_EUR),
                         col_names =  c("ID_SCEN", paste0("M_", ID_MESE_MAT)), skip = 1) %>%
   pivot_longer(cols = paste0("M_", ID_MESE_MAT), names_to = "ID_MESE_MAT", names_prefix = "M_", values_to = "VAL_TASSO") %>%
   mutate(COD_VALUTA = "EUR",
-         ID_MESE_MAT = as.numeric(ID_MESE_MAT),
-         ID_YEAR = 1)
+         ID_MESE_MAT = as.integer(ID_MESE_MAT),
+         ID_YEAR = as.integer(1),
+         ID_SCEN = as.integer(ID_SCEN))
 curve_USD <- read_delim(file.path(path_in_local, File_term_structure_USD),
                         col_names =  c("ID_SCEN", paste0("M_", ID_MESE_MAT)), skip = 1) %>%
   pivot_longer(cols = paste0("M_", ID_MESE_MAT), names_to = "ID_MESE_MAT", names_prefix = "M_", values_to = "VAL_TASSO") %>%
   mutate(COD_VALUTA = "USD",
-         ID_MESE_MAT = as.numeric(ID_MESE_MAT),
-         ID_YEAR = 1)
+         ID_MESE_MAT = as.integer(ID_MESE_MAT),
+         ID_YEAR = as.integer(1),
+         ID_SCEN = as.integer(ID_SCEN))
 curve_JPY <- read_delim(file.path(path_in_local, File_term_structure_JPY),
                         col_names =  c("ID_SCEN", paste0("M_", ID_MESE_MAT)), skip = 1) %>%
   pivot_longer(cols = paste0("M_", ID_MESE_MAT), names_to = "ID_MESE_MAT", names_prefix = "M_", values_to = "VAL_TASSO") %>%
   mutate(COD_VALUTA = "JPY",
-         ID_MESE_MAT = as.numeric(ID_MESE_MAT),
-         ID_YEAR = 1)
+         ID_MESE_MAT = as.integer(ID_MESE_MAT),
+         ID_YEAR = as.integer(1),
+         ID_SCEN = as.integer(ID_SCEN))
 curve_GBP <- read_delim(file.path(path_in_local, File_term_structure_GBP),
                         col_names =  c("ID_SCEN", paste0("M_", ID_MESE_MAT)), skip = 1) %>%
   pivot_longer(cols = paste0("M_", ID_MESE_MAT), names_to = "ID_MESE_MAT", names_prefix = "M_", values_to = "VAL_TASSO") %>%
   mutate(COD_VALUTA = "GBP",
-         ID_MESE_MAT = as.numeric(ID_MESE_MAT),
-         ID_YEAR = 1)
+         ID_MESE_MAT = as.integer(ID_MESE_MAT),
+         ID_YEAR = as.integer(1),
+         ID_SCEN = as.integer(ID_SCEN))
 
 curve_1y <- bind_rows(curve_EUR, curve_GBP, curve_JPY, curve_USD)
 # Aggiungo lo scenario 0 altrimenti va in errore do_ecap
@@ -106,7 +113,7 @@ notional_base <- read_delim(file.path(path_out_local, file_notional_base),
                             skip = 1,
                             delim = ";",
                             col_names = c("COD_VALUTA_FINALE", "COD_ENTITY", "ID_MESE_MAT", "DES_SHOCK_FINALE", "VAL_NOTIONAL"),
-                            col_types = "ccdcd",
+                            col_types = "cicd",
                             show_col_types = F)
 message('LOAD 003: notional_base')
 
@@ -115,7 +122,7 @@ notional <- read_delim(file.path(path_out_local, file_notional),
                        skip = 1,
                        delim = ";",
                        col_names = c("COD_VALUTA_FINALE", "COD_ENTITY", "ID_MESE_MAT", "DES_SHOCK_FINALE", "VAL_NOTIONAL"),
-                       col_types = "ccdcd",
+                       col_types = "ccicd",
                        show_col_types = F)
 message('LOAD 004: notional')
 
@@ -125,7 +132,7 @@ shock_effettivi <- read_delim(file.path(path_out_local, file_shock_effettivi),
                               skip = 1,
                               delim = ";",
                               col_names = c("COD_VALUTA", "DES_SHOCK_FINALE", "ID_MESE_MAT", "VAL_SHOCK_EFFETTIVO_BPS", "VAL_SHOCK_NOMINALE_BPS"),
-                              col_types = "ccddd",
+                              col_types = "ccidd",
                               show_col_types = F)
 message('LOAD 005: shock_effettivi')
 

@@ -1,25 +1,25 @@
 #' do_entity_aggregata
 #' @description
 #' Aggiunge entity aggregata al notional.
-#' @param .notional_prep tibble with 5 variables:
+#' @param .notional_prep tibble con 5 variabili:
 #' * COD_VALUTA_FINALE chr,
 #' * COD_ENTITY chr,
 #' * ID_MESE_MAT int,
 #' * DES_SHOCK_FINALE chr,
 #' * VAL_NOTIONAL dbl.
-#' @param .notional_noprep tibble with 5 variables:
+#' @param .notional_noprep tibble con 5 variabili:
 #' * COD_VALUTA_FINALE chr,
 #' * COD_ENTITY chr,
 #' * ID_MESE_MAT int,
 #' * DES_SHOCK_FINALE chr,
 #' * VAL_NOTIONAL dbl.
-#' @param .mapping_entity tibble with 5 variables:
+#' @param .mapping_entity tibble con 5 variabili:
 #' * COD_ENTITY chr,
 #' * DES_ENTITY chr,
 #' * COD_BU_TDB chr,
 #' * COD_BU_RND chr,
 #' * FLG_CAPOGRUPPO chr.
-#' @return a list with 3 tibbles, each with 5 variables:
+#' @return list con 3 tibbles, ognuno con 5 variabili:
 #' * COD_VALUTA_FINALE chr,
 #' * COD_ENTITY chr,
 #' * ID_MESE_MAT int,

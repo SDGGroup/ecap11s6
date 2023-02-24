@@ -1,25 +1,3 @@
-#' .interpolazione_spline
-#' @description
-#' Esegue interpolazione spline.
-#' @param .x vectors giving the x-coordinates of the points to be interpolated.
-#' @param .y vectors giving the y-coordinates of the points to be interpolated.
-#' @param .max_x set of values specifying where interpolation is to take place.
-#' @return tibble with 2 variables:
-#' * x dbl: x-coordinates of the interpolated points.
-#' * y dbl: y-coordinates of the interpolated points.
-#' @export
-.interpolazione_spline <- function(.x, .y, .max_x) {
-
-  xout <- seq_len(.max_x)
-
-  out <- spline(.x, .y, method = "natural", xout = xout)
-
-  out <- tibble(x = xout, y = out$y)
-
-  out
-
-}
-
 #' .concorda_segno
 #' @description
 #' Restituisce +1 se il segno di x e y è concorde, -1 se non concorde.
@@ -36,3 +14,22 @@
   sx * sy
 
 }
+
+#' .create_split_var
+#' @description
+#' Crea ID_SCEN_CLASS, bin var over ID_YEAR, COD_VALUTA, ID_SCEN
+#' @param .curve tba tibble con ID_YEAR, COD_VALUTA, ID_SCEN
+#' @param .n_split number of final bins
+#' @export
+.create_split_var <- function(.curve, .n_split){
+  .curve <- .curve %>%
+    left_join(.curve %>%
+                select(ID_YEAR, COD_VALUTA, ID_SCEN) %>%
+                distinct() %>%
+                mutate(key_split = 1:n()) %>%
+                mutate(ID_SCEN_CLASS = cut(key_split,.n_split,labels = FALSE))
+    ) %>%
+    select(-key_split)
+  return(.curve)
+}
+

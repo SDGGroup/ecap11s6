@@ -66,11 +66,14 @@ shock_effettivi <- read_delim(file.path(path_out_local, file_shock_effettivi),
 
 
 #---------------- Crea i file per i test --------------------------------------#
-# mapping_entity_tst
-mapping_entity_tst <- mapping_entity
 
 # curve_1y_tst
-curve_1y_tst <- curve_1y
+curve_1y_tst <- curve_1y %>% 
+  filter(ID_SCEN<=100)
+
+
+# mapping_entity_tst
+mapping_entity_tst <- mapping_entity
 
 # notional_base_tst
 notional_base_tst <- notional_base

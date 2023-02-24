@@ -1,66 +1,66 @@
 #' do_deltapv.R
 #' @description
-#' Calcola DELTA PV.
-#' @param .curve_interpol tibble object with 7 variables:
+#' Calcola DELTA PV
+#' @param .curve_interpol tibble  con 7 variabili:
 #' * COD_VALUTA chr,
 #' * ID_YEAR int,
 #' * ID_SCEN int,
 #' * ID_SCEN_CLASS int,
 #' * ID_MESE_MAT int,
 #' * VAL_TASSO dbl,
-#' * DISCOUNT_FACTOR dbl.
-#' @param .curve_interpol_scen0 tibble object with 7 variables:
+#' * DISCOUNT_FACTOR dbl
+#' @param .curve_interpol_scen0 tibble con 7 variabili:
 #' * COD_VALUTA chr,
 #' * ID_YEAR int,
 #' * ID_SCEN int,
 #' * ID_SCEN_CLASS int,
 #' * ID_MESE_MAT int,
 #' * VAL_TASSO dbl,
-#' * DISCOUNT_FACTOR dbl.
+#' * DISCOUNT_FACTOR dbl
 #' @param .formula_delta_pv chr.
 #' @param .prepayment chr.
-#' @param .scenari_prep tibble object with 4 variables:
+#' @param .scenari_prep tibble con 4 variabili:
 #' * ID_YEAR int,
 #' * COD_VALUTA chr,
 #' * ID_SCEN int,
-#' * DES_SHOCK_FINALE chr.
-#' @param .scenari_noprep tibble object with 4 variables:
+#' * DES_SHOCK_FINALE chr
+#' @param .scenari_noprep tibble con 4 variabili:
 #' * ID_YEAR int,
 #' * COD_VALUTA chr,
 #' * ID_SCEN int,
-#' * DES_SHOCK_FINALE chr.
-#' @param .notional tibble object with 5 variables:
+#' * DES_SHOCK_FINALE chr
+#' @param .notional tibble con 5 variabili:
+#' * COD_VALUTA_FINALE chr,
+#' * COD_ENTITY chr,
+#' * ID_MESE_MAT int,
+#' * DES_SHOCK_FINALE chr,
+#' * VAL_NOTIONAL dbl
+#' @param .notional_prep tibble con 5 variabili:
+#' * COD_VALUTA_FINALE chr,
+#' * COD_ENTITY chr,
+#' * ID_MESE_MAT int,
+#' * DES_SHOCK_FINALE chr,
+#' * VAL_NOTIONAL dbl
+#' @param .notional_noprep tibble con 5 variabili:
 #' * COD_VALUTA_FINALE chr,
 #' * COD_ENTITY chr,
 #' * ID_MESE_MAT int,
 #' * DES_SHOCK_FINALE chr,
 #' * VAL_NOTIONAL dbl.
-#' @param .notional_prep tibble object with 5 variables:
-#' * COD_VALUTA_FINALE chr,
-#' * COD_ENTITY chr,
-#' * ID_MESE_MAT int,
-#' * DES_SHOCK_FINALE chr,
-#' * VAL_NOTIONAL dbl.
-#' @param .notional_noprep tibble object with 5 variables:
-#' * COD_VALUTA_FINALE chr,
-#' * COD_ENTITY chr,
-#' * ID_MESE_MAT int,
-#' * DES_SHOCK_FINALE chr,
-#' * VAL_NOTIONAL dbl.
-#' @param .notional_base tibble object with 5 variables:
+#' @param .notional_base tibble con 5 variabili:
 #' * COD_ENTITY chr,
 #' * DES_SHOCK_FINALE chr,
 #' * ID_MESE_MAT int,
 #' * COD_VALUTA_FINALE chr,
-#' * VAL_NOTIONAL dbl.
-#' @return a tibble object with 7 variables:
+#' * VAL_NOTIONAL dbl
+#' @return a tibble con 5 variabili:
 #' * ID_YEAR int,
 #' * COD_VALUTA chr,
 #' * ID_SCEN int,
 #' * DES_SHOCK_FINALE chr,
 #' * COD_ENTITY chr,
 #' * VAL_DELTA_PV dbl,
-#' * DES_PREPAYMENT chr.
+#' * DES_PREPAYMENT chr
 #' @export
 
 do_deltapv <- function(.curve_interpol,
@@ -142,10 +142,11 @@ do_deltapv <- function(.curve_interpol,
 #' @description
 #' Calcola DELTA_PV gestionale per ogni scenario contenuto in scenari, valuta ed
 #' entity contenuta in notional.
-#' @param .scenari tba
-#' @param .notional tba
-#' @param .curve_1y_interpol tba
-#' @return a tibble tba
+#' @param .curve_1y_interpol tibble
+#' @param .curve_1y_interpol_scen0 tibble
+#' @param .scenari tibble
+#' @param .notional tibble
+#' @return a tibble
 #' @export
 .do_deltapv_gestionale <- function(.curve_interpol, .curve_interpol_scen0, .scenari, .notional){
 
@@ -206,10 +207,11 @@ do_deltapv <- function(.curve_interpol,
 #' @description
 #' Calcola DELTA_PV segnaletico per ogni scenario contenuto in scenari, valuta ed
 #' entity contenuta in notional.
-#' @param .scenari tba
-#' @param .notional tba
-#' @param .curve_1y_interpol tba
-#' @return a tibble tba
+#' @param .curve_1y_interpol tibble
+#' @param .curve_1y_interpol_scen0 tibble
+#' @param .scenari tibble
+#' @param .notional tibble
+#' @return a tibble
 #' @export
 .do_deltapv_segnaletico <- function(.curve_interpol, .curve_interpol_scen0, .scenari, .notional, .notional_base){
 

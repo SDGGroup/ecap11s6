@@ -1,13 +1,13 @@
 #' do_notional_prep_noprep
 #' @description
 #' Suddivide notional in notional_prep e notional_noprep.
-#' @param .notional tibble with 5 variables:
+#' @param .notional tibble con 5 variabili:
 #' * COD_ENTITY chr,
 #' * DES_SHOCK_FINALE chr,
 #' * ID_MESE_MAT int,
 #' * COD_VALUTA_FINALE chr,
 #' * VAL_NOTIONAL dbl.
-#' @return a list with 2 tibbles, each with 5 variables:
+#' @return list con 2 tibbles, ognuno con 5 variabili:
 #' * COD_VALUTA_FINALE chr,
 #' * COD_ENTITY chr,
 #' * ID_MESE_MAT int,

@@ -6,7 +6,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   libssl-dev \
   libz-dev \
   libcurl4-gnutls-dev \
-  libsodium-dev
+  libsodium-dev \
+  libpq-dev
 
 
 RUN mkdir /data
@@ -21,18 +22,19 @@ WORKDIR /app/ecap11s6
 
 
 # RENV
-ADD renv.lock .
+COPY renv.lock .
 RUN R -e "install.packages('renv', repos = c(CRAN = 'https://cran.wu.ac.at/'))"
 RUN R -e "renv::restore()"
 
 
 # Pkg source
-ADD run6.R run6.R
-ADD DESCRIPTION .
-ADD NAMESPACE .
-ADD R R
-ADD man man
+COPY run6.R run6.R
+COPY DESCRIPTION .
+COPY NAMESPACE .
+COPY R R
+COPY man man
 
+RUN chmod -R 755 /app
 
 # install ecap11s6
 RUN R CMD build .

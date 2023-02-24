@@ -1,7 +1,7 @@
 #' do_selezione_curve_ecap
 #' @description
 #' tba
-#' @param ecap a tibble object with 9 variables:
+#' @param ecap tibble con 9 variabili:
 #' * ID_YEAR int,
 #' * COD_VALUTA chr,
 #' * COD_ENTITY chr,
@@ -11,7 +11,7 @@
 #' * DES_SHOCK_FINALE chr,
 #' * DES_PREPAYMENT chr,
 #' * COD_RIPARTIZIONE chr.
-#' @param .curve_1y_interpol tibble with 7 variables:
+#' @param .curve_1y_interpol tibble con 7 variabili:
 #' * COD_VALUTA chr,
 #' * ID_YEAR int,
 #' * ID_SCEN int,
@@ -19,7 +19,7 @@
 #' * ID_MESE_MAT int,
 #' * VAL_TASSO dbl.
 #' * DISCOUNT_FACTOR dbl.
-#' @return tibble with 9 variables:
+#' @return tibble con 9 variabili:
 #' * ID_YEAR int,
 #' * COD_VALUTA chr,
 #' * COD_ENTITY chr,
