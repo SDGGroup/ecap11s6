@@ -84,54 +84,52 @@ do_bl <- function(.notional,
                   .percentile2,
                   .n_split,
                   .n_core){
-
+  
   # make cluster for parallelization
   cl <- makeCluster(.n_core)
-
+  
   #---------------------- 000 PARTIZIONE CURVE_1y -----------------------------#
   .curve_1y <- .create_split_var(.curve_1y, .n_split)
-
+  
   #---------------------- 000 DIVISIONE NOTIONAL: PREP - NO PREP --------------#
   .notional_diviso <- do_notional_prep_noprep(.notional = .notional)
   message('CALC 000: divisione_notional')
-
+  
   .notional_prep <- .notional_diviso$notional_prep
-
+  
   .notional_noprep <- .notional_diviso$notional_noprep
-
-
+  
+  
   #---------------------- 001 CALCOLO ENTITY AGGREGATA ------------------------#
-
+  
   .notional_lst <- do_entity_aggregata(.notional_prep = .notional_prep,
                                        .notional_noprep = .notional_noprep,
                                        .mapping_entity = .mapping_entity)
   message('CALC 001: entity_aggregata')
-
+  
   .notional <- .notional_lst$notional
-
+  
   .notional_prep <- .notional_lst$notional_prep
-
+  
   #---------------------- 002 CALCOLO INTERPOLAZIONE SPLINE -------------------#
-
   .curve_1y_interpol <- parLapply(cl,
                                   .curve_1y %>% group_split(ID_SCEN_CLASS),
                                   do_interpolazione_spline,
                                   .max_x = .max_x) %>%
     bind_rows()
-
   message('CALC 002: interpolazione_spline')
   gc()
-
+  
   #---------------------- 003 CALCOLO DISCOUNT FACTOR -------------------------#
-
+  
   .curve_1y_interpol <- do_discount_factor(.curve_1y_interpol = .curve_1y_interpol)
-
+  
   .curve_1y_interpol_scen0 <- .curve_1y_interpol %>%
     filter(ID_SCEN == 0)
-
+  
   message('CALC 003: discount_factor')
   gc()
-
+  
   # --------------------- 004 SELEZIONE SCENARIO SHOCK ------------------------#
   .selezione_screnario_shock <- parLapply(cl,
                                           .curve_1y_interpol %>% group_split(ID_SCEN_CLASS),
@@ -141,48 +139,49 @@ do_bl <- function(.notional,
                                           .prepayment = .prepayment,
                                           .scenario_no_prepayment = .scenario_no_prepayment,
                                           .mesi_tenor_prepayment = .mesi_tenor_prepayment)
+ 
   message('CALC 004: selezione_scenario_shock')
-
+  
   .scenari_noprep <-  bind_rows(lapply(.selezione_screnario_shock, function(x) x$scenari_noprep))
-
+  
   .scenari_prep <- bind_rows(lapply(.selezione_screnario_shock, function(x) x$scenari_prep))
   gc()
-
+  
   # -------------------- 005 CALCOLO DELTA PV ---------------------------------#
-
+  
   .deltapv <-  parLapply(cl,
                          .curve_1y_interpol %>% group_split(ID_SCEN_CLASS),
                          do_deltapv,
-                        .curve_interpol_scen0 = .curve_1y_interpol_scen0,
-                        .formula_delta_pv = .formula_delta_pv,
-                        .prepayment = .prepayment,
-                        .scenari_prep = .scenari_prep,
-                        .scenari_noprep = .scenari_noprep,
-                        .notional = .notional,
-                        .notional_prep = .notional_prep,
-                        .notional_noprep = .notional_noprep,
-                        .notional_base = .notional_base) %>%
+                         .curve_interpol_scen0 = .curve_1y_interpol_scen0,
+                         .formula_delta_pv = .formula_delta_pv,
+                         .prepayment = .prepayment,
+                         .scenari_prep = .scenari_prep,
+                         .scenari_noprep = .scenari_noprep,
+                         .notional = .notional,
+                         .notional_prep = .notional_prep,
+                         .notional_noprep = .notional_noprep,
+                         .notional_base = .notional_base) %>%
     bind_rows()
   message('CALC 005: delta_pv')
   gc()
-
+  
   # ------------------- 006 CALCOLO ECAP --------------------------------------#
-
+  
   .ecap <- do_ecap(.deltapv = .deltapv,
-                  .mapping_entity = .mapping_entity,
-                  .quantiles = c(.percentile1, .percentile2))
+                   .mapping_entity = .mapping_entity,
+                   .quantiles = c(.percentile1, .percentile2))
   message('CALC 006: ecap')
-
+  
   # ------------------- 007 SELEZIONE CURVE ECAP ------------------------------#
-
+  
   .curve <- do_selezione_curve_ecap(.ecap = .ecap,
-                                   .curve_1y_interpol = .curve_1y_interpol)
+                                    .curve_1y_interpol = .curve_1y_interpol)
   message('CALC 007: selezione_curve_ecap')
-
+  
   # stop clusters
   stopCluster(cl) # kill cluster
   closeAllConnections()
   gc()
-
+  
   return(list(delta_pv = .deltapv, ecap = .ecap, curve_var = .curve))
 }
